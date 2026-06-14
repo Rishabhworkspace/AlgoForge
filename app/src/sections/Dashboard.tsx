@@ -268,6 +268,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-[#ff8a63]/5 rounded-full blur-[100px] -translate-x-1/2" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      </div>
         {/* Header + Motivational Banner */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -730,54 +731,84 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </motion.div>
 
             {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="glass rounded-2xl p-6"
-            >
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-white/40" />
-                Recent Activity
-              </h3>
-              <div className="space-y-2">
-                {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity: any, index: number) => {
-                  const diffColor = activity.difficulty === 'Easy' ? '#22c55e' :
-                    activity.difficulty === 'Medium' ? '#eab308' : '#ef4444';
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.5 + index * 0.08 }}
-                      className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                          style={{ background: `${diffColor}15` }}>
-                          <CheckCircle2 className="w-4 h-4" style={{ color: diffColor }} />
-                        </div>
-                        <div>
-                          <p className="text-white text-sm font-medium group-hover:text-white/90">{activity.problem}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-medium"
-                              style={{ background: `${diffColor}15`, color: diffColor }}>
-                              {activity.difficulty}
-                            </span>
-                            <span className="text-white/30 text-[10px]">{timeAgo(activity.time)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-medium text-[#88ff9f]/70">+25 XP</span>
-                    </motion.div>
-                  );
-                }) : (
-                  <p className="text-white/40 text-sm py-4 text-center">No recent activity. Start solving problems!</p>
-                )}
-              </div>
-            </motion.div>
-          </div>
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6, delay: 0.4 }}
+  className="glass rounded-2xl p-6"
+>
+  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+    <Clock className="w-5 h-5 text-white/40" />
+    Recent Activity
+  </h3>
 
+  <div className="space-y-2">
+    {stats.recentActivity.length > 0 ? (
+      stats.recentActivity.map((activity: any, index: number) => {
+        const diffColor =
+          activity.difficulty === 'Easy'
+            ? '#22c55e'
+            : activity.difficulty === 'Medium'
+              ? '#eab308'
+              : '#ef4444';
+
+        return (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 + index * 0.08 }}
+            className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: `${diffColor}15` }}
+              >
+                <CheckCircle2 className="w-4 h-4" style={{ color: diffColor }} />
+              </div>
+
+              <div>
+                <p className="text-white text-sm font-medium group-hover:text-white/90">
+                  {activity.problem}
+                </p>
+
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span
+                    className="text-[10px] px-1.5 py-0.5 rounded-md font-medium"
+                    style={{ background: `${diffColor}15`, color: diffColor }}
+                  >
+                    {activity.difficulty}
+                  </span>
+                  <span className="text-white/30 text-[10px]">
+                    {timeAgo(activity.time)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <span className="text-xs font-medium text-[#88ff9f]/70">+25 XP</span>
+          </motion.div>
+        );
+      })
+    ) : (
+      <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+        <Clock className="w-10 h-10 text-[#a088ff] mb-3" />
+        <h4 className="text-white font-semibold text-lg">No activity yet</h4>
+        <p className="text-white/50 text-sm mt-2 max-w-sm">
+          Start solving problems to see your recent submissions and progress here.
+        </p>
+        <button
+          onClick={() => onNavigate('problems')}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#a088ff] to-[#63e3ff] px-4 py-2 text-sm font-semibold text-[#141414] transition hover:shadow-lg hover:shadow-[#a088ff]/20"
+        >
+          Start Solving Problems
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+    )}
+  </div>
+</motion.div>
           {/* Right Column */}
           <div className="space-y-6">
             {/* Badges */}

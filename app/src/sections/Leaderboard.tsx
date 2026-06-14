@@ -6,6 +6,7 @@ import {
   Flame,
   Target,
   Crown,
+  ArrowRight,
   Zap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -195,7 +196,26 @@ export function Leaderboard() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="space-y-2"
         >
-          {leaderboardData.slice(3).map((user, index) => (
+          {leaderboardData.length === 0 ? (
+  <div className="glass rounded-2xl p-8 text-center border border-white/10">
+    <Trophy className="w-12 h-12 text-[#ffd700] mx-auto mb-4" />
+    <h3 className="text-white text-xl font-semibold">
+      No leaderboard data yet
+    </h3>
+    <p className="text-white/50 text-sm mt-2">
+      Rankings will appear here once learners start solving problems.
+    </p>
+
+    <button
+      onClick={() => window.location.hash = '#problems'}
+      className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#a088ff] to-[#63e3ff] px-4 py-2 text-sm font-semibold text-[#141414]"
+    >
+      Start Solving Problems
+      <ArrowRight className="w-4 h-4" />
+    </button>
+  </div>
+) : (
+  leaderboardData.slice(3).map((user, index) => (
             <motion.div
               key={user.id}
               initial={{ opacity: 0, x: -20 }}
@@ -238,7 +258,7 @@ export function Leaderboard() {
                 </div>
               </div>
             </motion.div>
-          ))}
+          )))}
         </motion.div>
 
         {/* Current User Rank - TODO: Implement finding user rank from backend */}
