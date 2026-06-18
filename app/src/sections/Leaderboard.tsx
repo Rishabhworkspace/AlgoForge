@@ -13,7 +13,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  onProfileClick?: (userId: string) => void;
+}
+
+export function Leaderboard({ onProfileClick }: LeaderboardProps) {
   const { profile } = useAuth();
   const [timeRange, setTimeRange] = useState<'all' | 'month' | 'week'>('all');
   const [category, setCategory] = useState<'xp' | 'streak' | 'solved'>('xp');
@@ -135,7 +139,10 @@ export function Leaderboard() {
           >
             {/* 2nd Place */}
             {leaderboardData[1] && (
-              <div className="flex flex-col items-center">
+              <button
+                onClick={() => onProfileClick?.(leaderboardData[1].id)}
+                className="flex flex-col items-center hover:scale-105 transition-transform"
+              >
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#c0c0c0]/30 to-[#c0c0c0]/10 flex items-center justify-center mb-3 border-2 border-[#c0c0c0]/50 overflow-hidden">
                   {leaderboardData[1].avatar?.startsWith('http') ? (
                     <img src={leaderboardData[1].avatar} alt={leaderboardData[1].name} className="w-full h-full object-cover" />
@@ -148,12 +155,15 @@ export function Leaderboard() {
                 <div className="w-24 h-24 mt-3 rounded-t-xl bg-gradient-to-t from-[#c0c0c0]/20 to-transparent flex items-end justify-center pb-2">
                   <Medal className="w-8 h-8 text-[#c0c0c0]" />
                 </div>
-              </div>
+              </button>
             )}
 
             {/* 1st Place */}
             {leaderboardData[0] && (
-              <div className="flex flex-col items-center -mt-8">
+              <button
+                onClick={() => onProfileClick?.(leaderboardData[0].id)}
+                className="flex flex-col items-center -mt-8 hover:scale-105 transition-transform"
+              >
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ffd700]/30 to-[#ffd700]/10 flex items-center justify-center mb-3 border-2 border-[#ffd700]/50 animate-pulse-glow overflow-hidden">
                   {leaderboardData[0].avatar?.startsWith('http') ? (
                     <img src={leaderboardData[0].avatar} alt={leaderboardData[0].name} className="w-full h-full object-cover" />
@@ -166,12 +176,15 @@ export function Leaderboard() {
                 <div className="w-28 h-32 mt-3 rounded-t-xl bg-gradient-to-t from-[#ffd700]/20 to-transparent flex items-end justify-center pb-2">
                   <Crown className="w-10 h-10 text-[#ffd700]" />
                 </div>
-              </div>
+              </button>
             )}
 
             {/* 3rd Place */}
             {leaderboardData[2] && (
-              <div className="flex flex-col items-center">
+              <button
+                onClick={() => onProfileClick?.(leaderboardData[2].id)}
+                className="flex flex-col items-center hover:scale-105 transition-transform"
+              >
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#cd7f32]/30 to-[#cd7f32]/10 flex items-center justify-center mb-3 border-2 border-[#cd7f32]/50 overflow-hidden">
                   {leaderboardData[2].avatar?.startsWith('http') ? (
                     <img src={leaderboardData[2].avatar} alt={leaderboardData[2].name} className="w-full h-full object-cover" />
@@ -184,7 +197,7 @@ export function Leaderboard() {
                 <div className="w-24 h-16 mt-3 rounded-t-xl bg-gradient-to-t from-[#cd7f32]/20 to-transparent flex items-end justify-center pb-2">
                   <Medal className="w-8 h-8 text-[#cd7f32]" />
                 </div>
-              </div>
+              </button>
             )}
           </motion.div>
         )}
@@ -217,11 +230,14 @@ export function Leaderboard() {
 ) : (
   leaderboardData.slice(3).map((user, index) => (
             <motion.div
+          {leaderboardData.slice(3).map((user, index) => (
+            <motion.button
               key={user.id}
+              onClick={() => onProfileClick?.(user.id)}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.4 + index * 0.05 }}
-              className="glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/5 transition-colors"
+              className="glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/5 transition-colors w-full text-left"
             >
               {/* Rank */}
               <div className="w-8 flex justify-center">
@@ -259,6 +275,8 @@ export function Leaderboard() {
               </div>
             </motion.div>
           )))}
+            </motion.button>
+          ))}
         </motion.div>
 
         {/* Current User Rank - TODO: Implement finding user rank from backend */}

@@ -16,6 +16,8 @@ model User {
   role           String          @default("user") // "user", "admin"
   isBanned       Boolean         @default(false)
   avatar         String?
+  avatarUrl      String?
+  bio            String?         @default("")
   xp_points      Int             @default(0)
   streak_days    Int             @default(0)
   last_active    DateTime        @default(now())

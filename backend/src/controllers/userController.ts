@@ -108,24 +108,53 @@ export const getDashboardStats = async (req: Request | any, res: Response) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+// @desc    Get public profile for a user
+// @route   GET /api/users/:userId/profile
+// @access  Public
+export const getUserProfile = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                avatar: true,
+                avatarUrl: true,
+                bio: true,
+                xp_points: true,
+                streak_days: true,
+                solvedProblems: true,
+                createdAt: true,
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            id: user.id,
+            name: user.name,
+            avatar: user.avatarUrl || user.avatar || null,
+            bio: user.bio || '',
+            xp: user.xp_points || 0,
+            streak: user.streak_days || 0,
+            solved: user.solvedProblems?.length || 0,
+            level: Math.floor((user.xp_points || 0) / 100) + 1,
+            memberSince: user.createdAt,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 
 export const updateUserProfile = async (req: Request | any, res: Response) => {
     try {
-        const userId = req.user.id;
-        const { name, avatar, avatarUrl } = req.body;
-
-        // Validate inputs
-        if (name !== undefined && (typeof name !== 'string' || name.length > 100)) {
-            return res.status(400).json({ message: 'Invalid name' });
-        }
-        if (avatar !== undefined && avatar !== null && typeof avatar !== 'string') {
-            return res.status(400).json({ message: 'Invalid avatar' });
-        }
-        if (avatarUrl !== undefined && avatarUrl !== null && typeof avatarUrl !== 'string') {
-            return res.status(400).json({ message: 'Invalid avatar URL' });
-        }
-
-        const avatarData = avatar !== undefined ? avatar : avatarUrl;
+        const userId = req.params.userId;
+        const { bio, avatarUrl } = req.body;
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
 
@@ -133,22 +162,28 @@ export const updateUserProfile = async (req: Request | any, res: Response) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        if (req.user.id !== userId) {
+            return res.status(403).json({ message: 'You can only edit your own profile' });
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
-                name: name !== undefined ? name : user.name,
-                avatar: avatarData !== undefined ? avatarData : user.avatar,
-            }
+                bio: bio !== undefined ? bio : user.bio,
+                avatarUrl: avatarUrl !== undefined ? avatarUrl : user.avatarUrl,
+            },
         });
 
         res.status(200).json({
             id: updatedUser.id,
             name: updatedUser.name,
-            email: updatedUser.email,
-            avatar: updatedUser.avatar,
-            role: updatedUser.role,
-            xp_points: updatedUser.xp_points,
-            streak_days: updatedUser.streak_days,
+            avatar: updatedUser.avatarUrl || updatedUser.avatar || null,
+            bio: updatedUser.bio || '',
+            xp: updatedUser.xp_points,
+            streak: updatedUser.streak_days,
+            solved: updatedUser.solvedProblems?.length || 0,
+            level: Math.floor((updatedUser.xp_points || 0) / 100) + 1,
+            memberSince: updatedUser.createdAt,
         });
     } catch (error) {
         console.error(error);

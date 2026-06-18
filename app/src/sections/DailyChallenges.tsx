@@ -19,12 +19,30 @@ import { toast } from 'sonner';
 interface DailyChallengesProps {
     onBack: () => void;
 }
+/**
+ * Generates a deterministic FNV-1a hash from a string.
+ * Used to create a stable daily ordering of problems
+ * based on the current date seed and problem ID.
+ */
 
+const hashString = (str: string): number => {
+    let hash = 2166136261;
+
+    for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+
+    return hash >>> 0;
+};
 export function DailyChallenges({ onBack }: DailyChallengesProps) {
     const { refreshProfile } = useAuth();
     const [allProblems, setAllProblems] = useState<any[]>([]);
     const [completedProblems, setCompletedProblems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
+    const [dayKey, setDayKey] = useState(
+    new Date().toISOString().slice(0, 10)
+);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,32 +71,60 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
         fetchData();
     }, []);
 
+  useEffect(() => {
+    const updateDayKey = () => {
+        setDayKey(new Date().toISOString().slice(0, 10));
+    };
+
+    const now = new Date();
+    const nextMidnight = new Date();
+    nextMidnight.setUTCHours(24, 0, 0, 0);
+
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const timeoutId = setTimeout(() => {
+        updateDayKey();
+        intervalId = setInterval(updateDayKey, 24 * 60 * 60 * 1000);
+    }, nextMidnight.getTime() - now.getTime());
+
+    return () => {
+        clearTimeout(timeoutId);
+        if (intervalId) clearInterval(intervalId);
+    };
+}, []);
+
     // Use today's date as seed for deterministic daily selection
     const dailyProblems = useMemo(() => {
         if (allProblems.length === 0) return [];
 
-        const today = new Date();
-        const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+       const [year, month, day] = dayKey.split("-").map(Number);
+
+       const seed = year * 10000 + month * 100 + day;
 
         // Simple seeded shuffle to pick 3 problems deterministically per day
-        const shuffled = [...allProblems].sort((a, b) => {
-            const hashA = ((seed * 31 + a.id.charCodeAt(0)) * 37) % 1000;
-            const hashB = ((seed * 31 + b.id.charCodeAt(0)) * 37) % 1000;
-            return hashA - hashB;
-        });
+     const shuffled = [...allProblems]
+    .map(problem => ({
+        problem,
+        hash: hashString(`${seed}-${problem.id}`)
+    }))
+    .sort((a, b) => a.hash - b.hash)
+    .map(item => item.problem);
 
         // Try to get 1 Easy, 1 Medium, 1 Hard
         const easy = shuffled.find(p => p.difficulty === 'Easy');
         const medium = shuffled.find(p => p.difficulty === 'Medium');
         const hard = shuffled.find(p => p.difficulty === 'Hard');
+        
+
 
         const selected = [easy, medium, hard].filter(Boolean);
         // Fallback: if we don't have all 3 difficulties, just take first 3
         if (selected.length < 3) {
             return shuffled.slice(0, 3);
         }
+     
         return selected;
-    }, [allProblems]);
+    }, [allProblems, dayKey]);
 
     const challengesSolved = dailyProblems.filter(p => completedProblems.has(p.id)).length;
     const allCompleted = challengesSolved === dailyProblems.length && dailyProblems.length > 0;
@@ -279,7 +325,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                     className="flex items-center justify-center gap-2 mt-8 text-white/30 text-sm"
                 >
                     <RefreshCw className="w-4 h-4" />
-                    <span>Challenges refresh daily at midnight</span>
+                    <span>Challenges refresh daily at 00:00 UTC</span>
                 </motion.div>
             </div>
         </section>

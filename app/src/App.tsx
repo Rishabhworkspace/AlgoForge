@@ -17,6 +17,7 @@ import { ScrollToTop } from '@/components/custom/ScrollToTop';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { PageSkeleton } from '@/components/custom/PageSkeleton';
+import { ProfileView } from '@/sections/ProfileView';
 
 // Lazy loaded views
 const PathDetail = lazy(() => import('@/sections/PathDetail').then(m => ({ default: m.PathDetail })));
@@ -32,12 +33,13 @@ const Documentation = lazy(() => import('@/sections/Documentation').then(m => ({
 const ApiReference = lazy(() => import('@/sections/ApiReference').then(m => ({ default: m.ApiReference })));
 const ProblemWorkspace = lazy(() => import('@/sections/ProblemWorkspace').then(m => ({ default: m.ProblemWorkspace })));
 
-type View = 'home' | 'dashboard' | 'topic' | 'path' | 'problems' | 'notes' | 'leaderboard' | 'community' | 'daily-challenges' | 'admin' | 'docs' | 'api' | 'workspace';
+type View = 'home' | 'dashboard' | 'topic' | 'path' | 'problems' | 'notes' | 'leaderboard' | 'community' | 'daily-challenges' | 'admin' | 'docs' | 'api' | 'workspace' | 'profile';
 
 function AppContent() {
   const { user, isAuthReady } = useAuth();
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [selectedProfileUserId, setSelectedProfileUserId] = useState<string | null>(null);
   const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -60,6 +62,10 @@ function AppContent() {
           const wId = hash.replace('workspace/', '');
           setSelectedWorkspaceId(wId);
           setCurrentView('workspace');
+        } else if (hash.startsWith('profile/')) {
+          const userId = hash.replace('profile/', '');
+          setSelectedProfileUserId(userId);
+          setCurrentView('profile');
         } else if (hash === 'dashboard') {
           if (user || !isAuthReady) {
             setCurrentView('dashboard');
@@ -141,6 +147,13 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleProfileClick = (userId: string) => {
+    setSelectedProfileUserId(userId);
+    setCurrentView('profile');
+    window.location.hash = `profile/${userId}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleAuthClick = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
@@ -194,7 +207,7 @@ function AppContent() {
       case 'notes':
         return <Notes />;
       case 'leaderboard':
-        return <Leaderboard />;
+        return <Leaderboard onProfileClick={handleProfileClick} />;
       case 'daily-challenges':
         return <DailyChallenges onBack={() => handleNavigate('dashboard')} />;
       case 'community':
@@ -205,6 +218,12 @@ function AppContent() {
         return <Documentation />;
       case 'api':
         return <ApiReference />;
+      case 'profile':
+        return selectedProfileUserId ? (
+          <ProfileView userId={selectedProfileUserId} onBack={() => handleNavigate('leaderboard')} />
+        ) : (
+          <Leaderboard onProfileClick={handleProfileClick} />
+        );
       case 'home':
       default:
         return user ? (
@@ -225,9 +244,6 @@ function AppContent() {
         );
     }
   };
-
-  // We removed the global full-page isLoading check.
-  // The app will now render immediately (optimistic UI), showing PageSkeleton where needed.
 
   return (
     <div className="min-h-screen bg-[#141414]">
