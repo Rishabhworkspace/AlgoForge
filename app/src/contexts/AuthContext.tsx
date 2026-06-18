@@ -4,6 +4,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  avatar?: string;
   role?: string;
   xp_points?: number;
   streak_days?: number;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: userData.id,
           email: userData.email,
           name: userData.name,
+          avatar: userData.avatar,
           role: userData.role,
           xp_points: userData.xp_points,
           streak_days: userData.streak_days,
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: data.id,
         email: data.email,
         name: data.name,
+        avatar: data.avatar,
         role: data.role,
         xp_points: data.xp_points,
         streak_days: data.streak_days,
@@ -143,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: data.id,
         email: data.email,
         name: data.name,
+        avatar: data.avatar,
         role: data.role,
         xp_points: data.xp_points,
         streak_days: data.streak_days,
@@ -181,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: data.id,
         email: data.email,
         name: data.name,
+        avatar: data.avatar,
         role: data.role,
         xp_points: data.xp_points,
         streak_days: data.streak_days,
