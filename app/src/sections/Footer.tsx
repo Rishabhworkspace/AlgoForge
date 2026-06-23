@@ -9,7 +9,6 @@ import {
 import { Logo } from '@/components/ui/Logo';
 
 // Footer component - onNavigate prop reserved for future use
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ViewType = 'home' | 'dashboard' | 'topic' | 'problems' | 'notes' | 'leaderboard' | 'docs' | 'api';
 
 interface FooterProps {

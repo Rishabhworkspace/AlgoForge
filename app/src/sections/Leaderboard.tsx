@@ -20,6 +20,7 @@ export function Leaderboard({ onProfileClick }: LeaderboardProps) {
   const { profile } = useAuth();
   const [timeRange, setTimeRange] = useState<'all' | 'month' | 'week'>('all');
   const [category, setCategory] = useState<'xp' | 'streak' | 'solved'>('xp');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

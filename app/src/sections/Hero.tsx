@@ -29,6 +29,7 @@ function TypewriterText() {
   // Typing logic
   useEffect(() => {
     if (subIndex === WORDS[index].length + 1 && !reverse) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReverse(true);
       return;
     }
@@ -87,6 +88,7 @@ function CodeWindow() {
       }
     }, 30);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

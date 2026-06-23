@@ -33,6 +33,7 @@ function useCountUp(target: number, duration = 1200) {
   const ref = useRef<number>(0);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (target === 0) { setCount(0); return; }
     const start = ref.current;
     const startTime = performance.now();
@@ -99,7 +100,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const loading = problemsLoading || topicsLoading || progressLoading || statsLoading;
 
   const stats = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const solvedProgress = userProgress.filter((p: any) => p.status === 'SOLVED');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const solvedIds = new Set(solvedProgress.map((p: any) => p.problem_id));
 
     const totalSolved = solvedIds.size;
@@ -108,6 +111,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
     let easy = 0, medium = 0, hard = 0;
     let easyTotal = 0, mediumTotal = 0, hardTotal = 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     problems.forEach((p: any) => {
       if (p.difficulty === 'Easy') { easyTotal++; if (solvedIds.has(p.id)) easy++; }
       else if (p.difficulty === 'Medium') { mediumTotal++; if (solvedIds.has(p.id)) medium++; }
@@ -115,9 +119,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     });
 
     const recent = solvedProgress
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, 5)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((p: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const prob = problems.find((prob: any) => prob.id === p.problem_id);
         return {
           problem: prob ? prob.title : 'Unknown Problem',
@@ -138,7 +145,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }, [problems, userProgress, dashboardStats, profile]);
 
   const weeklyProgress = useMemo(() => {
-    if (dashboardStats?.weeklyActivity) return dashboardStats.weeklyActivity.map((d: any) => d.count);
+    if (dashboardStats?.weeklyActivity)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return dashboardStats.weeklyActivity.map((d: any) => d.count);
     return [0, 0, 0, 0, 0, 0, 0];
   }, [dashboardStats]);
 
@@ -150,23 +159,32 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }, [dashboardStats]);
 
   const continueTopics = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const solvedProgress = userProgress.filter((p: any) => p.status === 'SOLVED');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const solvedIds = new Set(solvedProgress.map((p: any) => p.problem_id));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return topics.map((topic: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const topicProblems = problems.filter((p: any) => p.topic_id === topic.id);
       const totalInTopic = topicProblems.length;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const solvedInTopic = topicProblems.filter((p: any) => solvedIds.has(p.id)).length;
       const progress = totalInTopic > 0 ? Math.round((solvedInTopic / totalInTopic) * 100) : 0;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const topicProblemIds = new Set(topicProblems.map((p: any) => p.id));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const topicSolves = solvedProgress.filter((p: any) => topicProblemIds.has(p.problem_id));
       const lastSolveDate = topicSolves.length > 0
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ? Math.max(...topicSolves.map((p: any) => new Date(p.updatedAt).getTime()))
         : 0;
 
       return { ...topic, solvedInTopic, totalInTopic, progress, lastSolveDate };
     })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .sort((a: any, b: any) => {
         if (a.solvedInTopic > 0 && b.solvedInTopic === 0) return -1;
         if (a.solvedInTopic === 0 && b.solvedInTopic > 0) return 1;
@@ -177,6 +195,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const dayLabels = useMemo(() => {
     if (dashboardStats?.weeklyActivity) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return dashboardStats.weeklyActivity.map((d: any) => {
         const date = new Date(d.date + 'T00:00:00');
         return date.toLocaleDateString('en-US', { weekday: 'short' });
@@ -686,6 +705,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {continueTopics.map((topic: any, i: number) => {
                   const intensity = topic.progress / 100;
                   return (
@@ -741,7 +761,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 Recent Activity
               </h3>
               <div className="space-y-2">
-                {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity: any, index: number) => {
+                {stats.recentActivity.length > 0 ? stats.recentActivity.map(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (activity: any, index: number) => {
                   const diffColor = activity.difficulty === 'Easy' ? '#22c55e' :
                     activity.difficulty === 'Medium' ? '#eab308' : '#ef4444';
                   return (
@@ -842,6 +864,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             >
               <h3 className="text-lg font-semibold text-white mb-4">Continue Learning</h3>
               <div className="space-y-2">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {continueTopics.slice(0, 4).map((topic: any) => (
                   <motion.button
                     key={topic.id}

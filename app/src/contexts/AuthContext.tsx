@@ -8,20 +8,20 @@ interface User {
   role?: string;
   xp_points?: number;
   streak_days?: number;
-  solvedProblems?: any[];
-  activityLog?: any[];
+  solvedProblems?: Array<Record<string, unknown>>;
+  activityLog?: Array<Record<string, unknown>>;
 }
 
 interface AuthContextType {
   user: User | null;
-  profile: any | null;
+  profile: Record<string, unknown> | null;
   isLoading: boolean;
   isAuthReady: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
-  signInWithGoogle: (credential?: string) => Promise<{ error: any; isNewUser?: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: (credential?: string) => Promise<{ error: string | null; isNewUser?: boolean }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Record<string, unknown>) => Promise<{ error: any }>;
+  updateProfile: (updates: Record<string, unknown>) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -31,7 +31,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const isLoading = false;
   const [isAuthReady, setIsAuthReady] = useState(false);
 
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile({ ...data, id: data.id });
 
       return { error: null };
-    } catch (err) {
+    } catch {
       return { error: 'Network error. Ensure backend is running.' };
     }
   };
@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile({ ...data, id: data.id });
 
       return { error: null };
-    } catch (err) {
+    } catch {
       return { error: 'Network error. Ensure backend is running.' };
     }
   };
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile({ ...data, id: data.id });
 
       return { error: null, isNewUser: data.isNewUser };
-    } catch (err) {
+    } catch {
       return { error: 'Network error during Google Auth' };
     }
   };
@@ -231,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: data.message || 'Failed to update profile' };
       }
 
-      setProfile((prev: any) => ({ ...prev, ...data }));
+      setProfile((prev: Record<string, unknown>) => ({ ...prev, ...data }));
       
       if (user) {
         setUser((prevUser) => {
@@ -245,7 +245,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return { error: null };
-    } catch (err) {
+    } catch {
       return { error: 'Network error. Ensure backend is running.' };
     }
   };
@@ -268,6 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

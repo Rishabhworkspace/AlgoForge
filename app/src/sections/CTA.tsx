@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,15 @@ interface CTAProps {
 
 export function CTA({ onGetStarted }: CTAProps) {
   const { userCount } = useStats();
+
+  const [speedLines] = useState(() =>
+    Array.from({ length: 20 }, () => ({
+      duration: 2 + Math.random() * 2,
+      delay: Math.random() * 2,
+      top: `${Math.random() * 100}%`,
+      width: `${100 + Math.random() * 200}px`,
+    })),
+  );
 
   return (
     <section className="relative py-24 overflow-hidden">
@@ -37,15 +46,15 @@ export function CTA({ onGetStarted }: CTAProps) {
               opacity: [0, 0.5, 0]
             }}
             transition={{
-              duration: 2 + Math.random() * 2,
+              duration: speedLines[i].duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: speedLines[i].delay,
               ease: 'linear'
             }}
             className="absolute h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
             style={{
-              top: `${Math.random() * 100}%`,
-              width: `${100 + Math.random() * 200}px`
+              top: speedLines[i].top,
+              width: speedLines[i].width
             }}
           />
         ))}

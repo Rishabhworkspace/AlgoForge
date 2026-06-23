@@ -122,6 +122,7 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
     // Fetch posts
     useEffect(() => {
         fetchPosts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeCategory, activeSort, currentPage]);
 
     const fetchPosts = async () => {

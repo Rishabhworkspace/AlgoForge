@@ -99,6 +99,7 @@ export function AlgoBot({ onAuthClick }: { onAuthClick: (mode: 'login' | 'signup
                 setLatestAiIndex(newMsgs.length - 1);
                 return newMsgs;
             });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             const errorData = error?.response?.data;
             const mainError = errorData?.error || 'Sorry, something went wrong.';

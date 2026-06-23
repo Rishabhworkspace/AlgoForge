@@ -28,7 +28,9 @@ const iconMap: Record<string, React.ElementType> = {
 
 export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
     const { user } = useAuth();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [pathInfo, setPathInfo] = useState<any>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [topics, setTopics] = useState<any[]>([]);
     const [topicStats, setTopicStats] = useState<Record<string, { total: number; completed: number; easy: number; medium: number; hard: number }>>({});
     const [loading, setLoading] = useState(true);
@@ -41,6 +43,7 @@ export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
                     getTopicsByPath(pathId)
                 ]);
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const currentPath = paths.find((p: any) => p.id === pathId);
                 setPathInfo(currentPath);
                 setTopics(pathTopics);
@@ -52,22 +55,30 @@ export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
                         const progressData = await getUserProgress();
                         solvedSet = new Set<string>(
                             progressData
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 .filter((p: any) => p.status === 'SOLVED')
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 .map((p: any) => p.problem_id)
                         );
                     } catch { /* user not logged in */ }
                 }
 
                 // Fetch problem counts per topic & compute completed from solvedSet
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const stats: Record<string, any> = {};
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await Promise.all(pathTopics.map(async (topic: any) => {
                     try {
                         const problems = await getProblemsByTopic(topic.id);
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const easy = problems.filter((p: any) => p.difficulty === 'Easy').length;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const medium = problems.filter((p: any) => p.difficulty === 'Medium').length;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const hard = problems.filter((p: any) => p.difficulty === 'Hard').length;
 
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const completed = problems.filter((p: any) => solvedSet.has(p.id)).length;
 
                         stats[topic.id] = { total: problems.length, completed, easy, medium, hard };

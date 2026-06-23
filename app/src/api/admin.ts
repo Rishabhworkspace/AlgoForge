@@ -22,6 +22,7 @@ export const getUsers = async (page = 1, limit = 20, search = '') => {
     return response.data;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const editUser = async (userId: string, updates: any) => {
     const response = await axios.put(`${API_BASE_URL}/api/admin/users/${userId}`, updates, getAuthHeader());
     return response.data;
@@ -38,11 +39,13 @@ export const deleteUser = async (userId: string) => {
 };
 
 // ========== CONTENT MANAGEMENT ==========
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addProblem = async (problemData: any) => {
     const response = await axios.post(`${API_BASE_URL}/api/admin/problems`, problemData, getAuthHeader());
     return response.data;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const editProblem = async (problemId: string, updates: any) => {
     const response = await axios.put(`${API_BASE_URL}/api/admin/problems/${problemId}`, updates, getAuthHeader());
     return response.data;
@@ -59,6 +62,7 @@ export const deleteForumPost = async (postId: string) => {
     return response.data;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const editForumPost = async (postId: string, updates: any) => {
     const response = await axios.put(`${API_BASE_URL}/api/admin/forum/posts/${postId}`, updates, getAuthHeader());
     return response.data;

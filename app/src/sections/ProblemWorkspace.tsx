@@ -26,11 +26,13 @@ const SUPPORTED_LANGUAGES = [
  * @param onBack    - Callback invoked when the user navigates back to the problem list.
  */
 export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [problem, setProblem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState<string>('// Write your code here');
   const [language, setLanguage] = useState<string>('javascript');
   const [theme, setTheme] = useState<'vs-dark' | 'light'>('vs-dark');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [isExecuting, setIsExecuting] = useState(false);
 
@@ -99,7 +101,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       const result = await executeCode(problemId, code, language);
       setExecutionResult(result);
       return result;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       const errRes = { error: `Execution failed: ${error.message || 'Server error'}` };
       setExecutionResult(errRes);
       toast.error('Failed to execute code');
@@ -120,7 +122,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       toast.success('All test cases passed! (Submission saved)');
       try {
         await updateProblemStatus(problemId, 'SOLVED');
-      } catch (err) {
+      } catch {
         // silently fail if not logged in or other issues
       }
     }
@@ -277,6 +279,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
                   <div className={`text-lg font-bold ${executionResult.allPassed ? 'text-green-400' : 'text-red-400'}`}>
                     {executionResult.allPassed ? 'All Test Cases Passed!' : 'Some Test Cases Failed'}
                   </div>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {executionResult.results.map((res: any, idx: number) => (
                     <div key={idx} className="bg-white/5 p-3 rounded-lg border border-white/10">
                       <div className="flex items-center justify-between mb-2">

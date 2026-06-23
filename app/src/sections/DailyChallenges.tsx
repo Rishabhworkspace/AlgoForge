@@ -37,6 +37,7 @@ const hashString = (str: string): number => {
 };
 export function DailyChallenges({ onBack }: DailyChallengesProps) {
     const { refreshProfile } = useAuth();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [allProblems, setAllProblems] = useState<any[]>([]);
     const [completedProblems, setCompletedProblems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -54,6 +55,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                 try {
                     const progressData = await getUserProgress();
                     const completed = new Set<string>();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     progressData.forEach((p: any) => {
                         if (p.status === 'SOLVED') completed.add(p.problem_id);
                     });

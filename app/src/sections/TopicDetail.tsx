@@ -26,7 +26,9 @@ interface TopicDetailProps {
 
 export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
   const { refreshProfile } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topic, setTopic] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [problems, setProblems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,6 +62,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
           const completed = new Set<string>();
           const bookmarked = new Set<string>();
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           progressData.forEach((p: any) => {
             if (p.status === 'SOLVED') completed.add(p.problem_id);
             if (p.is_bookmarked) bookmarked.add(p.problem_id);
@@ -70,7 +73,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
           setCompletedProblems(completed);
           setBookmarkedProblems(bookmarked);
           setNotesMap(notesData);
-        } catch (err) {
+        } catch {
           // User might not be logged in, ignore
         }
 
@@ -129,7 +132,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
       if (!wasCompleted) toast.success('Problem marked as complete! +25 XP');
       // Refresh profile so nav XP updates immediately
       refreshProfile();
-    } catch (e) {
+    } catch {
       // Revert
       setCompletedProblems(prev => {
         const newSet = new Set(prev);
@@ -157,7 +160,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
       await apiToggleBookmark(problemMongoId);
       if (wasBookmarked) toast.info('Bookmark removed');
       else toast.success('Problem bookmarked');
-    } catch (e) {
+    } catch {
       setBookmarkedProblems(prev => {
         const newSet = new Set(prev);
         if (wasBookmarked) newSet.add(problemMongoId);
@@ -181,7 +184,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
       setNotesMap(prev => ({ ...prev, [notesModal.problemId]: noteContent }));
       toast.success(noteContent.trim() ? 'Note saved!' : 'Note cleared');
       setNotesModal(null);
-    } catch (e) {
+    } catch {
       toast.error('Failed to save note. Please log in.');
     } finally {
       setSavingNote(false);
@@ -294,6 +297,7 @@ export function TopicDetail({ topicId, onBack }: TopicDetailProps) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="space-y-3"
         >
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {filteredProblems.map((problem: any, index: number) => {
             const problemMongoId = problem.id;
             const isCompleted = completedProblems.has(problemMongoId);

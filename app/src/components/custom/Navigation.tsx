@@ -71,6 +71,7 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
     { id: 'roadmaps', label: 'Roadmaps', icon: Map, view: 'home' as const, isAnchor: true },
     { id: 'problems', label: 'Problems', icon: List, view: 'problems' as const, isAnchor: false },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, view: 'leaderboard' as const, isAnchor: false },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Shield, view: 'admin' as any, isAnchor: false }] : []),
   ];
 

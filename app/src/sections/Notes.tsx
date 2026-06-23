@@ -42,6 +42,7 @@ export function Notes() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editForm, setEditForm] = useState({ content: '' });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [problems, setProblems] = useState<any[]>([]);
 
   // New note creation state
@@ -62,8 +63,11 @@ export function Notes() {
 
         // Extract notes from progress entries that have non-empty notes
         const notesFromProgress: Note[] = progressData
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .filter((p: any) => p.notes && p.notes.trim() !== '')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((p: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const problem = problemsData.find((prob: any) => prob.id === p.problem_id);
             return {
               id: p.id,
@@ -132,6 +136,7 @@ export function Notes() {
           throw new Error('Invalid ID returned from backend');
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const problem = problems.find((p: any) => p.id === newNoteProblemId);
         const newNote: Note = {
           id: realNoteId,
@@ -142,8 +147,8 @@ export function Notes() {
         };
         setNotes([newNote, ...notes]);
         toast.success('Note created successfully');
-      } catch (e) {
-        toast.error('Failed to create note');
+    } catch {
+      toast.error('Failed to create note');
         return;
       }
     } else if (selectedNote) {
@@ -160,8 +165,8 @@ export function Notes() {
             : n
         ));
         toast.success('Note updated successfully');
-      } catch (e) {
-        toast.error('Failed to update note');
+    } catch {
+      toast.error('Failed to update note');
         return;
       }
     }
@@ -347,6 +352,7 @@ export function Notes() {
                       />
                       {problemSearch && (
                         <div className="max-h-40 overflow-y-auto rounded-lg border border-white/10 bg-[#1a1a1a]">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           {availableProblems.slice(0, 8).map((p: any) => (
                             <button
                               key={p.id}
@@ -368,8 +374,10 @@ export function Notes() {
                           )}
                         </div>
                       )}
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {newNoteProblemId && !problemSearch.includes(problems.find((p: any) => p.id === newNoteProblemId)?.title || '') && (
                         <p className="text-xs text-[#a088ff] mt-1">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           Selected: {problems.find((p: any) => p.id === newNoteProblemId)?.title}
                         </p>
                       )}

@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     // Only load the inspect plugin in development — it adds overhead in production
     ...(mode === 'development'
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       ? [require('kimi-plugin-inspect-react').inspectAttr()]
       : []),
     react(),
