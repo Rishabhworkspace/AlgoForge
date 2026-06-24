@@ -148,7 +148,10 @@ export const createPost = async (req: Request, res: Response) => {
         const { title, content, category, tags } = req.body;
 
         // Validate title
-        const trimmedTitle = (title || '').trim();
+        if (typeof title !== 'string') {
+            return res.status(400).json({ message: 'Title is required' });
+        }
+        const trimmedTitle = title.trim();
         if (!trimmedTitle) {
             return res.status(400).json({ message: 'Title is required' });
         }
@@ -160,7 +163,10 @@ export const createPost = async (req: Request, res: Response) => {
         }
 
         // Validate content
-        const trimmedContent = (content || '').trim();
+        if (typeof content !== 'string') {
+            return res.status(400).json({ message: 'Content is required' });
+        }
+        const trimmedContent = content.trim();
         if (!trimmedContent) {
             return res.status(400).json({ message: 'Content is required' });
         }
@@ -172,6 +178,9 @@ export const createPost = async (req: Request, res: Response) => {
         }
 
         // Validate tags
+        if (tags !== undefined && tags !== null && !Array.isArray(tags)) {
+            return res.status(400).json({ message: 'Tags must be an array' });
+        }
         const postTags = Array.isArray(tags) ? tags : [];
         if (postTags.length > 5) {
             return res.status(400).json({ message: 'Maximum 5 tags allowed' });
