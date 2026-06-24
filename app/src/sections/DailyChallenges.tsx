@@ -15,6 +15,7 @@ import { getAllProblems } from '@/api/content';
 import { updateProblemStatus, getUserProgress } from '@/api/userActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { SOLVE_XP } from '@/utils/xpConfig';
 
 interface DailyChallengesProps {
     onBack: () => void;
@@ -142,7 +143,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
 
         try {
             await updateProblemStatus(problemMongoId, wasCompleted ? 'TODO' : 'SOLVED');
-            if (!wasCompleted) toast.success('Challenge problem solved! +25 XP');
+            if (!wasCompleted) toast.success(`Challenge problem solved! +${SOLVE_XP} XP`);
             refreshProfile();
         } catch {
             setCompletedProblems(prev => {
@@ -207,7 +208,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 rounded-full glass">
                             <Zap className="w-5 h-5 text-[#ffd700]" />
-                            <span className="text-white font-medium">{challengesSolved * 25} XP Earned</span>
+                            <span className="text-white font-medium">{challengesSolved * SOLVE_XP} XP Earned</span>
                         </div>
                     </div>
                 </motion.div>
@@ -311,7 +312,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
                                     <Zap className="w-4 h-4 text-[#ffd700]" />
                                     <span className="text-sm text-white/40">
-                                        {isCompleted ? 'Earned' : 'Reward'}: <span className="text-[#ffd700]">+25 XP</span>
+                                        {isCompleted ? 'Earned' : 'Reward'}: <span className="text-[#ffd700]">+{SOLVE_XP} XP</span>
                                     </span>
                                 </div>
                             </motion.div>

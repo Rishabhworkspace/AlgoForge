@@ -32,9 +32,13 @@
         "prisma": "^6.4.1"
     },
     "devDependencies": {
+        "@types/express-rate-limit": "^5.1.3",
         "@types/node": "^25.9.2",
         "@vitest/coverage-v8": "^4.1.8",
         "nodemon": "^3.1.0",
+        "semver": "^7.8.5",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3",
         "vitest": "^4.1.8",
         "vitest-mock-extended": "^4.0.0"
     }

@@ -22,6 +22,7 @@ import { updateProblemStatus, toggleBookmark as apiToggleBookmark, getUserProgre
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { SOLVE_XP } from '@/utils/xpConfig';
 
 export function Problems() {
   const { data: problemsData = [], isLoading: problemsLoading } = useQuery({
@@ -130,7 +131,7 @@ export function Problems() {
 
     try {
       await updateProblemStatus(problemMongoId, wasCompleted ? 'TODO' : 'SOLVED');
-      if (!wasCompleted) toast.success('Problem marked as complete! +25 XP');
+      if (!wasCompleted) toast.success(`Problem marked as complete! +${SOLVE_XP} XP`);
       // Refresh profile so nav XP updates immediately
       refreshProfile();
     } catch {
