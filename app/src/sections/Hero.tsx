@@ -29,14 +29,15 @@ function TypewriterText() {
   // Typing logic
   useEffect(() => {
     if (subIndex === WORDS[index].length + 1 && !reverse) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setReverse(true);
+      setTimeout(() => setReverse(true), 0);
       return;
     }
 
     if (subIndex === 0 && reverse) {
-      setReverse(false);
-      setIndex((prev) => (prev + 1) % WORDS.length);
+      setTimeout(() => {
+        setReverse(false);
+        setIndex((prev) => (prev + 1) % WORDS.length);
+      }, 0);
       return;
     }
 
@@ -88,8 +89,7 @@ function CodeWindow() {
       }
     }, 30);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [codeSnippet]);
 
   return (
     <div className="glass rounded-xl overflow-hidden shadow-2xl border border-white/10 w-full max-w-lg mx-auto text-left">

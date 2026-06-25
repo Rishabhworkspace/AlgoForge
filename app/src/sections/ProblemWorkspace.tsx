@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Play, CheckCircle2, ChevronDown, Moon, Sun, Monitor } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Play, CheckCircle2, ChevronDown, Moon, Sun, Monitor, Trash2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { getProblemById, executeCode } from '@/api/content';
 import { updateProblemStatus } from '@/api/userActions';
@@ -35,6 +35,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const consoleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -68,6 +69,12 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       setCode(boilerplate[language] || '// Write your code here');
     }
   }, [problemId, language]);
+  useEffect(() => {
+    consoleRef.current?.scrollTo({
+      top: consoleRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [executionResult]);
 
   /**
    * Handles Monaco editor content changes, updating local state and
@@ -88,14 +95,18 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
    *
    * @returns The execution result object on success, or an error object on failure.
    */
+  const handleClearConsole = () => {
+  setExecutionResult(null);
+  setIsExecuting(false);
+};
   const handleRunCode = async () => {
     if (!code.trim()) {
       toast.error('Code cannot be empty');
       return;
     }
 
+    setExecutionResult(null);
     setIsExecuting(true);
-    setExecutionResult({ status: 'Running...' });
 
     try {
       const result = await executeCode(problemId, code, language);
@@ -266,14 +277,34 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
 
           {/* Console / Output Area */}
           <div className="h-[200px] xl:h-[250px] border-t border-white/10 flex flex-col shrink-0 bg-[#141414]">
-            <div className="h-10 border-b border-white/10 flex items-center px-4 bg-white/5 shrink-0">
-              <Monitor className="w-4 h-4 text-white/60 mr-2" />
-              <span className="text-white/80 text-sm font-medium">Console Output</span>
+            <div className="h-10 border-b border-white/10 flex items-center justify-between px-4 bg-white/5 shrink-0">
+              <div className="flex items-center">
+                <Monitor className="w-4 h-4 text-white/60 mr-2" />
+                <span className="text-white/80 text-sm font-medium">Console Output</span>
+              </div>
+
+              <button
+                onClick={handleClearConsole}
+                className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
+                title="Clear console output"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm text-white/60 whitespace-pre-wrap">
-              {!executionResult && 'Execute code to see output here.'}
-              {executionResult?.status && executionResult.status}
-              {executionResult?.error && <span className="text-red-400">{executionResult.error}</span>}
+{/* Console / Output Area */}
+            <div
+              ref={consoleRef}
+              className="min-h-[120px] overflow-y-auto p-4 font-mono text-sm text-white/60 whitespace-pre-wrap"
+              >
+            
+              {isExecuting && 'Running...'}
+              {!isExecuting && !executionResult && (
+               <div className="text-white/50">Execute code to see output here.</div>
+               )}
+              {!isExecuting && executionResult?.error && (
+              <span className="text-red-400">{executionResult.error}</span>
+              )}
               {executionResult?.success && (
                 <div className="space-y-4">
                   <div className={`text-lg font-bold ${executionResult.allPassed ? 'text-green-400' : 'text-red-400'}`}>

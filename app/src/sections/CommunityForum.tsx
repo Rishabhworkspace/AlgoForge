@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -120,12 +120,7 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
     const watchContent = watch('content');
 
     // Fetch posts
-    useEffect(() => {
-        fetchPosts();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeCategory, activeSort, currentPage]);
-
-    const fetchPosts = async () => {
+    const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getPosts(activeCategory, activeSort, currentPage);
@@ -136,7 +131,11 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeCategory, activeSort, currentPage]);
+
+    useEffect(() => {
+        fetchPosts();
+    }, [fetchPosts]);
 
     const handleOpenPost = async (postId: string) => {
         setDetailLoading(true);

@@ -39,8 +39,7 @@ function SpotlightCard({ children, className = "", color = "#ffffff" }: { childr
 }
 
 interface CommunityHubProps {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onNavigate: (view: any) => void;
+    onNavigate: (view: 'home' | 'community') => void;
 }
 
 const communityCards = [

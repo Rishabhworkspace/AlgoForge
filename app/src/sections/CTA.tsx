@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,13 +12,16 @@ interface CTAProps {
 export function CTA({ onGetStarted }: CTAProps) {
   const { userCount } = useStats();
 
-  const [speedLines] = useState(() =>
-    Array.from({ length: 20 }, () => ({
-      duration: 2 + Math.random() * 2,
-      delay: Math.random() * 2,
-      top: `${Math.random() * 100}%`,
-      width: `${100 + Math.random() * 200}px`,
+  // Pre-compute random values to avoid Math.random() in render
+  const warpLines = useMemo(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      key: i,
+      duration: 2 + (((i * 7 + 3) % 10) / 5),
+      delay: ((i * 13 + 7) % 20) / 10,
+      top: ((i * 17 + 11) % 100),
+      width: 100 + ((i * 23 + 5) % 200),
     })),
+    []
   );
 
   return (
@@ -37,24 +41,24 @@ export function CTA({ onGetStarted }: CTAProps) {
 
       {/* Warp Speed Lines */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {warpLines.map((line) => (
           <motion.div
-            key={i}
+            key={line.key}
             initial={{ x: '-100%', opacity: 0 }}
             animate={{
               x: '200%',
               opacity: [0, 0.5, 0]
             }}
             transition={{
-              duration: speedLines[i].duration,
+              duration: line.duration,
               repeat: Infinity,
-              delay: speedLines[i].delay,
+              delay: line.delay,
               ease: 'linear'
             }}
             className="absolute h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
             style={{
-              top: speedLines[i].top,
-              width: speedLines[i].width
+              top: `${line.top}%`,
+              width: `${line.width}px`
             }}
           />
         ))}

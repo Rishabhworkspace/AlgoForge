@@ -20,6 +20,20 @@ import { SOLVE_XP } from '@/utils/xpConfig';
 interface DailyChallengesProps {
     onBack: () => void;
 }
+
+interface DailyProblem {
+    id: string;
+    title: string;
+    difficulty: string;
+    video_link?: string;
+    problem_link?: string;
+    tags?: string[];
+}
+
+interface DailyProgressItem {
+    status: string;
+    problem_id: string;
+}
 /**
  * Generates a deterministic FNV-1a hash from a string.
  * Used to create a stable daily ordering of problems
@@ -38,8 +52,7 @@ const hashString = (str: string): number => {
 };
 export function DailyChallenges({ onBack }: DailyChallengesProps) {
     const { refreshProfile } = useAuth();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [allProblems, setAllProblems] = useState<any[]>([]);
+    const [allProblems, setAllProblems] = useState<DailyProblem[]>([]);
     const [completedProblems, setCompletedProblems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const [dayKey, setDayKey] = useState(
@@ -56,8 +69,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                 try {
                     const progressData = await getUserProgress();
                     const completed = new Set<string>();
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    progressData.forEach((p: any) => {
+                    progressData.forEach((p: DailyProgressItem) => {
                         if (p.status === 'SOLVED') completed.add(p.problem_id);
                     });
                     setCompletedProblems(completed);
@@ -120,7 +132,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
         
 
 
-        const selected = [easy, medium, hard].filter(Boolean);
+        const selected = [easy, medium, hard].filter((p): p is DailyProblem => p !== undefined);
         // Fallback: if we don't have all 3 difficulties, just take first 3
         if (selected.length < 3) {
             return shuffled.slice(0, 3);

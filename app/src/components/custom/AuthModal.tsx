@@ -45,7 +45,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
           onClose();
         }
       }
-    } catch {
+    } catch (_err) {
       toast.error('An unexpected error occurred');
     } finally {
       setIsLoading(false);
