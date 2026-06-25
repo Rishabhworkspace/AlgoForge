@@ -320,7 +320,7 @@ export function Problems() {
         >
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {filteredProblems.map((problem: any, index: number) => {
-            const problemMongoId = problem.id || problem.id;
+            const problemMongoId = problem._id || problem.id;
             const isCompleted = completedProblems.has(problemMongoId);
             const isBookmarked = bookmarkedProblems.has(problemMongoId);
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
