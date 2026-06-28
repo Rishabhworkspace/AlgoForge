@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -24,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { createPostSchema, TITLE_MAX, CONTENT_MAX } from '@/lib/validators';
 import {
     getPosts,
     getPost,
@@ -95,10 +98,26 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
 
     // Create post state
     const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newTitle, setNewTitle] = useState('');
-    const [newContent, setNewContent] = useState('');
-    const [newCategory, setNewCategory] = useState('general');
     const [createSubmitting, setCreateSubmitting] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        reset,
+        formState: { errors, isValid },
+    } = useForm({
+        resolver: zodResolver(createPostSchema),
+        defaultValues: {
+            title: '',
+            content: '',
+            category: 'general',
+        },
+        mode: 'onChange',
+    });
+
+    const watchTitle = watch('title');
+    const watchContent = watch('content');
 
     // Fetch posts
     const fetchPosts = useCallback(async () => {
@@ -130,23 +149,20 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
         }
     };
 
-    const handleCreatePost = async () => {
+    const handleCreatePost = async (data: { title: string; content: string; category: string }) => {
         if (!user) {
             onAuthClick('login');
             return;
         }
-        if (!newTitle.trim() || !newContent.trim()) return;
 
         setCreateSubmitting(true);
         try {
             await createPost({
-                title: newTitle.trim(),
-                content: newContent.trim(),
-                category: newCategory
+                title: data.title.trim(),
+                content: data.content.trim(),
+                category: data.category,
             });
-            setNewTitle('');
-            setNewContent('');
-            setNewCategory('general');
+            reset();
             setShowCreateForm(false);
             fetchPosts();
         } catch (err) {
@@ -488,34 +504,64 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
                             exit={{ opacity: 0, height: 0 }}
                             className="overflow-hidden mb-6"
                         >
-                            <div className="glass rounded-2xl p-6 border border-[#a088ff]/20 bg-[#0a0a0a]/60 backdrop-blur-md">
+                            <form
+                                onSubmit={handleSubmit(handleCreatePost)}
+                                className="glass rounded-2xl p-6 border border-[#a088ff]/20 bg-[#0a0a0a]/60 backdrop-blur-md"
+                            >
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-semibold text-white">Create New Post</h3>
-                                    <button onClick={() => setShowCreateForm(false)} className="text-white/40 hover:text-white">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowCreateForm(false); reset(); }}
+                                        className="text-white/40 hover:text-white"
+                                    >
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
-                                <input
-                                    value={newTitle}
-                                    onChange={e => setNewTitle(e.target.value)}
-                                    placeholder="Post title..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#a088ff]/50 mb-3"
-                                />
+                                <div className="mb-3">
+                                    <input
+                                        {...register('title')}
+                                        placeholder="Post title..."
+                                        maxLength={TITLE_MAX}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#a088ff]/50"
+                                    />
+                                    <div className="flex justify-between mt-1.5 px-1">
+                                        {errors.title ? (
+                                            <span className="text-red-400 text-xs">{errors.title.message}</span>
+                                        ) : (
+                                            <span />
+                                        )}
+                                        <span className={`text-xs ${watchTitle.length >= TITLE_MAX ? 'text-red-400' : 'text-white/30'}`}>
+                                            {watchTitle.length} / {TITLE_MAX}
+                                        </span>
+                                    </div>
+                                </div>
 
-                                <textarea
-                                    value={newContent}
-                                    onChange={e => setNewContent(e.target.value)}
-                                    placeholder="What's on your mind? Share your thoughts, questions, or solutions..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:border-[#a088ff]/50 resize-none min-h-[120px] mb-3"
-                                />
+                                <div className="mb-3">
+                                    <textarea
+                                        {...register('content')}
+                                        placeholder="What's on your mind? Share your thoughts, questions, or solutions..."
+                                        maxLength={CONTENT_MAX}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:border-[#a088ff]/50 resize-none min-h-[120px]"
+                                    />
+                                    <div className="flex justify-between mt-1.5 px-1">
+                                        {errors.content ? (
+                                            <span className="text-red-400 text-xs">{errors.content.message}</span>
+                                        ) : (
+                                            <span />
+                                        )}
+                                        <span className={`text-xs ${watchContent.length >= CONTENT_MAX ? 'text-red-400' : 'text-white/30'}`}>
+                                            {watchContent.length.toLocaleString()} / {CONTENT_MAX.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="text-white/40 text-xs">Category:</span>
                                         <select
-                                            value={newCategory}
-                                            onChange={e => setNewCategory(e.target.value)}
+                                            {...register('category')}
                                             className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-[#a088ff]/50 appearance-none cursor-pointer"
                                         >
                                             {categories.filter(c => c.id !== 'all').map(c => (
@@ -525,8 +571,8 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
                                     </div>
 
                                     <Button
-                                        onClick={handleCreatePost}
-                                        disabled={!newTitle.trim() || !newContent.trim() || createSubmitting}
+                                        type="submit"
+                                        disabled={!isValid || createSubmitting}
                                         className="bg-[#a088ff] hover:bg-[#8f76fa] text-white text-sm"
                                         size="sm"
                                     >
@@ -538,7 +584,7 @@ export function CommunityForum({ onBack, onAuthClick }: CommunityForumProps) {
                                         Post
                                     </Button>
                                 </div>
-                            </div>
+                            </form>
                         </motion.div>
                     )}
                 </AnimatePresence>
