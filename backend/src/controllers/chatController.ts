@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { prisma } from '../config/db';
+import { config } from '../config/env';
 
 const SYSTEM_PROMPT = `You are AlgoBot, a friendly and expert AI tutor for Data Structures & Algorithms on the AlgoForge platform.
 
@@ -24,7 +25,7 @@ export const chat = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = config.GEMINI_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'Gemini API key not configured' });
         }
