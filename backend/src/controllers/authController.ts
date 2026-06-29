@@ -18,11 +18,6 @@ const generateToken = (id: string) => {
 export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-        res.status(400).json({ message: 'Please add all fields' });
-        return;
-    }
-
     const userExists = await prisma.user.findUnique({ where: { email } });
 
     if (userExists) {
