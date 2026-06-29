@@ -5,6 +5,30 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig(() => ({
   base: '/',
+  server: {
+    headers: {
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' ws: wss: https://algoforge-2-0.onrender.com http://localhost:5000 https://accounts.google.com https://www.googleapis.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://cdn.jsdelivr.net; frame-src 'self' https://accounts.google.com; child-src 'self' blob: https://accounts.google.com; worker-src 'self' blob: https://cdn.jsdelivr.net; form-action 'self'; frame-ancestors 'self';",
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    }
+  },
+  preview: {
+    headers: {
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' ws: wss: https://algoforge-2-0.onrender.com http://localhost:5000 https://accounts.google.com https://www.googleapis.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://cdn.jsdelivr.net; frame-src 'self' https://accounts.google.com; child-src 'self' blob: https://accounts.google.com; worker-src 'self' blob: https://cdn.jsdelivr.net; form-action 'self'; frame-ancestors 'self';",
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    }
+  },
   plugins: [
     react(),
   ],
@@ -15,7 +39,7 @@ export default defineConfig(() => ({
   },
   define: {
     'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
-      process.env.VITE_API_BASE_URL || 'https://algoforge-2-0.onrender.com'
+      process.env.VITE_API_BASE_URL || (process.env.VERCEL ? 'https://algoforge-2-0.onrender.com' : '')
     ),
   },
   build: {
