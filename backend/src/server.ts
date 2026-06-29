@@ -5,14 +5,10 @@ import helmet from 'helmet';
 import connectDB from './config/db';
 
 dotenv.config();
-
-// server.ts — add before app.listen()
-if (!process.env.JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is not set.');
-}
+import { config } from './config/env';
 
 const app: Express = express();
-const port = process.env.PORT || 5000;
+const port = config.PORT || 5000;
 
 // Middleware
 const allowedOrigins = [
@@ -21,7 +17,7 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:4173',
     'http://localhost:3000',
-    process.env.CLIENT_URL,
+    config.CLIENT_URL,
 ].filter(Boolean) as string[];
 
 app.use(cors({
