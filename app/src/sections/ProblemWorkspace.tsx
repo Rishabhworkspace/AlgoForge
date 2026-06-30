@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Play, CheckCircle2, ChevronDown, Moon, Sun, Monitor } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Play, CheckCircle2, ChevronDown, Moon, Sun, Monitor, Trash2 } from 'lucide-react';
 import Editor, { BeforeMount } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { getProblemById, executeCode } from '@/api/content';
@@ -80,13 +80,16 @@ const ALGOFORGE_DARK_THEME: editor.IStandaloneThemeData = {
  * @param onBack    - Callback invoked when the user navigates back to the problem list.
  */
 export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [problem, setProblem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState<string>('// Write your code here');
   const [language, setLanguage] = useState<string>('javascript');
   const [theme, setTheme] = useState<'algoforge-dark' | 'light'>('algoforge-dark');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const consoleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -120,6 +123,12 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       setCode(boilerplate[language] || '// Write your code here');
     }
   }, [problemId, language]);
+  useEffect(() => {
+    consoleRef.current?.scrollTo({
+      top: consoleRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [executionResult]);
 
   /**
    * Handles Monaco editor content changes, updating local state and
@@ -144,20 +153,24 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
    *
    * @returns The execution result object on success, or an error object on failure.
    */
+  const handleClearConsole = () => {
+  setExecutionResult(null);
+  setIsExecuting(false);
+};
   const handleRunCode = async () => {
     if (!code.trim()) {
       toast.error('Code cannot be empty');
       return;
     }
 
+    setExecutionResult(null);
     setIsExecuting(true);
-    setExecutionResult({ status: 'Running...' });
 
     try {
       const result = await executeCode(problemId, code, language);
       setExecutionResult(result);
       return result;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       const errRes = { error: `Execution failed: ${error.message || 'Server error'}` };
       setExecutionResult(errRes);
       toast.error('Failed to execute code');
@@ -178,7 +191,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       toast.success('All test cases passed! (Submission saved)');
       try {
         await updateProblemStatus(problemId, 'SOLVED');
-      } catch (err) {
+      } catch {
         // silently fail if not logged in or other issues
       }
     }
@@ -293,7 +306,8 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
               <button
                 onClick={() => setTheme(theme === 'algoforge-dark' ? 'light' : 'algoforge-dark')}
                 className="text-white/60 hover:text-white"
-                title="Toggle Theme"
+                aria-label="Toggle theme"
+                aria-pressed={theme === 'algoforge-dark'}
               >
                 {theme === 'algoforge-dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
@@ -323,19 +337,40 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
 
           {/* Console / Output Area */}
           <div className="h-[200px] xl:h-[250px] border-t border-white/10 flex flex-col shrink-0 bg-[#141414]">
-            <div className="h-10 border-b border-white/10 flex items-center px-4 bg-white/5 shrink-0">
-              <Monitor className="w-4 h-4 text-white/60 mr-2" />
-              <span className="text-white/80 text-sm font-medium">Console Output</span>
+            <div className="h-10 border-b border-white/10 flex items-center justify-between px-4 bg-white/5 shrink-0">
+              <div className="flex items-center">
+                <Monitor className="w-4 h-4 text-white/60 mr-2" />
+                <span className="text-white/80 text-sm font-medium">Console Output</span>
+              </div>
+
+              <button
+                onClick={handleClearConsole}
+                className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
+                title="Clear console output"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm text-white/60 whitespace-pre-wrap">
-              {!executionResult && 'Execute code to see output here.'}
-              {executionResult?.status && executionResult.status}
-              {executionResult?.error && <span className="text-red-400">{executionResult.error}</span>}
+{/* Console / Output Area */}
+            <div
+              ref={consoleRef}
+              className="min-h-[120px] overflow-y-auto p-4 font-mono text-sm text-white/60 whitespace-pre-wrap"
+              >
+            
+              {isExecuting && 'Running...'}
+              {!isExecuting && !executionResult && (
+               <div className="text-white/50">Execute code to see output here.</div>
+               )}
+              {!isExecuting && executionResult?.error && (
+              <span className="text-red-400">{executionResult.error}</span>
+              )}
               {executionResult?.success && (
                 <div className="space-y-4">
                   <div className={`text-lg font-bold ${executionResult.allPassed ? 'text-green-400' : 'text-red-400'}`}>
                     {executionResult.allPassed ? 'All Test Cases Passed!' : 'Some Test Cases Failed'}
                   </div>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {executionResult.results.map((res: any, idx: number) => (
                     <div key={idx} className="bg-white/5 p-3 rounded-lg border border-white/10">
                       <div className="flex items-center justify-between mb-2">

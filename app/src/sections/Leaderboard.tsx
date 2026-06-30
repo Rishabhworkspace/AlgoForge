@@ -16,11 +16,21 @@ interface LeaderboardProps {
   onProfileClick?: (userId: string) => void;
 }
 
+interface LeaderboardEntry {
+  id: string;
+  name: string;
+  avatar?: string;
+  xp: number;
+  streak: number;
+  solved: number;
+  rank: number;
+}
+
 export function Leaderboard({ onProfileClick }: LeaderboardProps) {
   const { profile } = useAuth();
   const [timeRange, setTimeRange] = useState<'all' | 'month' | 'week'>('all');
   const [category, setCategory] = useState<'xp' | 'streak' | 'solved'>('xp');
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

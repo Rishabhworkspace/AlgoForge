@@ -39,7 +39,7 @@ function SpotlightCard({ children, className = "", color = "#ffffff" }: { childr
 }
 
 interface CommunityHubProps {
-    onNavigate: (view: any) => void;
+    onNavigate: (view: 'home' | 'community') => void;
 }
 
 const communityCards = [

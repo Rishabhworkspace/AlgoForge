@@ -147,16 +147,56 @@ export const createPost = async (req: Request, res: Response) => {
     try {
         const { title, content, category, tags } = req.body;
 
-        if (!title || !content) {
-            return res.status(400).json({ message: 'Title and content are required' });
+        // Validate title
+        if (typeof title !== 'string') {
+            return res.status(400).json({ message: 'Title is required' });
+        }
+        const trimmedTitle = title.trim();
+        if (!trimmedTitle) {
+            return res.status(400).json({ message: 'Title is required' });
+        }
+        if (trimmedTitle.length < 10) {
+            return res.status(400).json({ message: 'Title must be at least 10 characters' });
+        }
+        if (trimmedTitle.length > 150) {
+            return res.status(400).json({ message: 'Title must be less than 150 characters' });
+        }
+
+        // Validate content
+        if (typeof content !== 'string') {
+            return res.status(400).json({ message: 'Content is required' });
+        }
+        const trimmedContent = content.trim();
+        if (!trimmedContent) {
+            return res.status(400).json({ message: 'Content is required' });
+        }
+        if (trimmedContent.length < 20) {
+            return res.status(400).json({ message: 'Content must be at least 20 characters' });
+        }
+        if (trimmedContent.length > 10000) {
+            return res.status(400).json({ message: 'Content must be less than 10,000 characters' });
+        }
+
+        // Validate tags
+        if (tags !== undefined && tags !== null && !Array.isArray(tags)) {
+            return res.status(400).json({ message: 'Tags must be an array' });
+        }
+        const postTags = Array.isArray(tags) ? tags : [];
+        if (postTags.length > 5) {
+            return res.status(400).json({ message: 'Maximum 5 tags allowed' });
+        }
+        for (const tag of postTags) {
+            if (typeof tag !== 'string' || tag.trim().length > 30) {
+                return res.status(400).json({ message: 'Each tag must be 30 characters or less' });
+            }
         }
 
         const post = await prisma.forumPost.create({
             data: {
-                title,
-                content,
+                title: trimmedTitle,
+                content: trimmedContent,
                 category: category || 'general',
-                tags: tags || [],
+                tags: postTags.map((t: string) => t.trim()),
                 authorId: req.user.id
             },
             include: { author: { select: { id: true, name: true, avatar: true } } }

@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import path from 'path';
+import { config } from '../config/env';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const uri = process.env.MONGO_URI as string;
+const uri = config.MONGO_URI as string;
 
 async function migrate() {
     console.log("Starting migration using Prisma engine to bypass DNS issues...");
