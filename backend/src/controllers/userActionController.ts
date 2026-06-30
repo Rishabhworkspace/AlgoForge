@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
+import { SOLVE_XP } from '../config/xpConfig';
 
 export const updateProblemStatus = async (req: Request | any, res: Response) => {
     try {
@@ -33,6 +34,17 @@ export const updateProblemStatus = async (req: Request | any, res: Response) => 
         if (status === 'SOLVED' && previousStatus !== 'SOLVED') {
             const userDoc = await prisma.user.findUnique({ where: { id: userId } });
             if (userDoc) {
+                // ─────────────────────────────────────────────
+                // UTC-based streak logic
+                // ─────────────────────────────────────────────
+                // All date comparisons use UTC via toISOString().split('T')[0].
+                // Streak rules (all dates are UTC calendar dates):
+                //   1. If last_active is today (UTC) → streak unchanged
+                //   2. If last_active is yesterday (UTC) → streak increments by 1
+                //   3. If last_active is 2+ days ago (UTC) → streak resets to 1
+                //   4. If no last_active (new user) → streak starts at 1
+                // Streak resets at midnight UTC regardless of user's local timezone.
+                // ─────────────────────────────────────────────
                 const today = new Date();
                 const todayStr = today.toISOString().split('T')[0];
                 const lastActiveStr = userDoc.last_active ? new Date(userDoc.last_active).toISOString().split('T')[0] : null;
@@ -64,7 +76,7 @@ export const updateProblemStatus = async (req: Request | any, res: Response) => 
                 await prisma.user.update({
                     where: { id: userId },
                     data: {
-                        xp_points: { increment: 25 },
+                        xp_points: { increment: SOLVE_XP },
                         solvedProblems: { push: [{ problemId, solvedAt: today }] },
                         streak_days: newStreak,
                         last_active: today,
@@ -79,7 +91,7 @@ export const updateProblemStatus = async (req: Request | any, res: Response) => 
                 await prisma.user.update({
                     where: { id: userId },
                     data: {
-                        xp_points: { decrement: 25 },
+                        xp_points: { decrement: SOLVE_XP },
                         solvedProblems: updatedSolvedProblems
                     }
                 });

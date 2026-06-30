@@ -23,6 +23,7 @@ import { updateProblemStatus, toggleBookmark as apiToggleBookmark, getUserProgre
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { SOLVE_XP } from '@/utils/xpConfig';
 
 const PAGE_SIZE = 20;
 
@@ -96,7 +97,8 @@ export function Problems() {
       const completed = new Set<string>();
       const bookmarked = new Set<string>();
       const notesData: Record<string, string> = {};
-
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userProgressData.forEach((p: any) => {
         if (p.status === 'SOLVED') completed.add(p.problem_id);
         if (p.is_bookmarked) bookmarked.add(p.problem_id);
@@ -118,6 +120,7 @@ export function Problems() {
   // Get all unique tags
   const allTags = useMemo(() => {
     const tags = new Set<string>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     allProblems.forEach((p: any) => {
       if (p.tags) p.tags.forEach((t: string) => tags.add(t));
     });
@@ -126,7 +129,7 @@ export function Problems() {
 
   // Filter problems
   const filteredProblems = useMemo(() => {
-    return allProblems.filter((problem: any) => {
+    return allProblems.filter((problem: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
       const tags = problem.tags || [];
       const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -139,8 +142,11 @@ export function Problems() {
   // Stats
   const stats = {
     total: allProblems.length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     easy: allProblems.filter((p: any) => p.difficulty === 'Easy').length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     medium: allProblems.filter((p: any) => p.difficulty === 'Medium').length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hard: allProblems.filter((p: any) => p.difficulty === 'Hard').length,
   };
 
@@ -158,10 +164,10 @@ export function Problems() {
 
     try {
       await updateProblemStatus(problemMongoId, wasCompleted ? 'TODO' : 'SOLVED');
-      if (!wasCompleted) toast.success('Problem marked as complete! +25 XP');
+      if (!wasCompleted) toast.success(`Problem marked as complete! +${SOLVE_XP} XP`);
       // Refresh profile so nav XP updates immediately
       refreshProfile();
-    } catch (e) {
+    } catch {
       setCompletedProblems(prev => {
         const newSet = new Set(prev);
         if (wasCompleted) newSet.add(problemMongoId);
@@ -188,7 +194,7 @@ export function Problems() {
       await apiToggleBookmark(problemMongoId);
       if (wasBookmarked) toast.info('Bookmark removed');
       else toast.success('Problem bookmarked');
-    } catch (e) {
+    } catch {
       setBookmarkedProblems(prev => {
         const newSet = new Set(prev);
         if (wasBookmarked) newSet.add(problemMongoId);
@@ -345,10 +351,12 @@ export function Problems() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="grid gap-3"
         >
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {filteredProblems.map((problem: any, index: number) => {
-            const problemMongoId = problem.id || problem.id;
+            const problemMongoId = problem._id || problem.id;
             const isCompleted = completedProblems.has(problemMongoId);
             const isBookmarked = bookmarkedProblems.has(problemMongoId);
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             const topic = topics.find((t: any) => t.id === problem.topic_id);
 
             return (
@@ -510,7 +518,7 @@ export function Problems() {
                       setNotesMap(prev => ({ ...prev, [notesModal.problemId]: noteContent }));
                       toast.success(noteContent.trim() ? 'Note saved!' : 'Note cleared');
                       setNotesModal(null);
-                    } catch (e) {
+                    } catch {
                       toast.error('Failed to save note. Please log in.');
                     } finally {
                       setSavingNote(false);

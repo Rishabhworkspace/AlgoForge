@@ -26,10 +26,24 @@ const iconMap: Record<string, React.ElementType> = {
     Binary, Cpu, GitBranch, Network, Briefcase, Server
 };
 
+interface PathInfo {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+}
+
+interface TopicInfo {
+    id: string;
+    title: string;
+    description: string;
+}
+
 export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
     const { user } = useAuth();
-    const [pathInfo, setPathInfo] = useState<any>(null);
-    const [topics, setTopics] = useState<any[]>([]);
+    const [pathInfo, setPathInfo] = useState<PathInfo | null>(null);
+    const [topics, setTopics] = useState<TopicInfo[]>([]);
     const [topicStats, setTopicStats] = useState<Record<string, { total: number; completed: number; easy: number; medium: number; hard: number }>>({});
     const [loading, setLoading] = useState(true);
 
@@ -41,7 +55,7 @@ export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
                     getTopicsByPath(pathId)
                 ]);
 
-                const currentPath = paths.find((p: any) => p.id === pathId);
+                const currentPath = paths.find((p: PathInfo) => p.id === pathId);
                 setPathInfo(currentPath);
                 setTopics(pathTopics);
 
@@ -61,14 +75,14 @@ export function PathDetail({ pathId, onBack, onTopicClick }: PathDetailProps) {
                 // Fetch problem counts per topic & compute completed from solvedSet
                 const stats: Record<string, any> = {};
 
-                await Promise.all(pathTopics.map(async (topic: any) => {
+                await Promise.all(pathTopics.map(async (topic: TopicInfo) => {
                     try {
                         const problems = await getProblemsByTopic(topic.id);
-                        const easy = problems.filter((p: any) => p.difficulty === 'Easy').length;
-                        const medium = problems.filter((p: any) => p.difficulty === 'Medium').length;
-                        const hard = problems.filter((p: any) => p.difficulty === 'Hard').length;
+                        const easy = problems.filter((p: { difficulty: string }) => p.difficulty === 'Easy').length;
+                        const medium = problems.filter((p: { difficulty: string }) => p.difficulty === 'Medium').length;
+                        const hard = problems.filter((p: { difficulty: string }) => p.difficulty === 'Hard').length;
 
-                        const completed = problems.filter((p: any) => solvedSet.has(p.id)).length;
+                        const completed = problems.filter((p: { id: string }) => solvedSet.has(p.id)).length;
 
                         stats[topic.id] = { total: problems.length, completed, easy, medium, hard };
                     } catch {

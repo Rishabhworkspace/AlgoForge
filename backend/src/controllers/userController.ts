@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
+import { calculateLevel } from '../config/xpConfig';
 
 // @desc    Get leaderboard data
 // @route   GET /api/users/leaderboard
@@ -68,6 +69,13 @@ export const getDashboardStats = async (req: Request | any, res: Response) => {
         const totalUsers = await prisma.user.count();
         const topPercent = totalUsers > 0 ? Math.round((rank / totalUsers) * 100) : 100;
 
+        // ─────────────────────────────────────────────
+        // UTC-based streak validation for dashboard display
+        // ─────────────────────────────────────────────
+        // Reset streak to 0 if last_active is not today or yesterday (UTC).
+        // This handles cases where the user missed a UTC day.
+        // All date comparisons use UTC via toISOString().split('T')[0].
+        // ─────────────────────────────────────────────
         let currentStreak = user.streak_days || 0;
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
@@ -141,7 +149,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
             xp: user.xp_points || 0,
             streak: user.streak_days || 0,
             solved: user.solvedProblems?.length || 0,
-            level: Math.floor((user.xp_points || 0) / 100) + 1,
+            level: calculateLevel(user.xp_points || 0),
             memberSince: user.createdAt,
         });
     } catch (error) {
@@ -182,7 +190,7 @@ export const updateUserProfile = async (req: Request | any, res: Response) => {
             xp: updatedUser.xp_points,
             streak: updatedUser.streak_days,
             solved: updatedUser.solvedProblems?.length || 0,
-            level: Math.floor((updatedUser.xp_points || 0) / 100) + 1,
+            level: calculateLevel(updatedUser.xp_points || 0),
             memberSince: updatedUser.createdAt,
         });
     } catch (error) {

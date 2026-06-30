@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Users, FileText, MessageSquare,
@@ -11,6 +11,71 @@ import * as adminApi from '@/api/admin';
 import { getLearningPaths, getTopicsByPath, getProblemsByTopic } from '@/api/content';
 
 type AdminTab = 'dashboard' | 'users' | 'content' | 'forum';
+
+interface AdminStats {
+    totalUsers: number;
+    totalProblems: number;
+    totalPosts: number;
+    totalTopics: number;
+    totalPaths: number;
+    activeToday: number;
+    bannedUsers: number;
+}
+
+interface AdminUser {
+    id: string;
+    name: string;
+    email: string;
+    role?: string;
+    xp_points?: number;
+    streak_days?: number;
+    isBanned?: boolean;
+}
+
+interface AdminProblem {
+    id: string;
+    title: string;
+    difficulty: string;
+    description: string;
+    video_link?: string;
+    problem_link?: string;
+    tags?: string[];
+    order_index?: number;
+    topic_id?: string;
+}
+
+interface AdminForumPost {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    isPinned?: boolean;
+    authorInfo?: { name?: string };
+    likesCount?: number;
+    repliesCount?: number;
+    createdAt: string;
+    replies?: AdminForumReply[];
+    likes?: string[];
+    author?: { name?: string };
+}
+
+interface AdminForumReply {
+    id: string;
+    content: string;
+    author?: { name?: string };
+    likes: string[];
+    createdAt: string;
+}
+
+interface LearningPath {
+    id: string;
+    title: string;
+}
+
+interface Topic {
+    id: string;
+    title: string;
+}
 
 // ===================== MAIN ADMIN PANEL =====================
 
@@ -82,7 +147,7 @@ export function AdminPanel() {
 // ===================== DASHBOARD TAB =====================
 
 function DashboardTab() {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -132,15 +197,15 @@ function DashboardTab() {
 // ===================== USERS TAB =====================
 
 function UsersTab() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
-    const [editingUser, setEditingUser] = useState<any>(null);
-    const [editForm, setEditForm] = useState<any>({});
+    const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+    const [editForm, setEditForm] = useState<Record<string, string | number>>({});
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const data = await adminApi.getUsers(page, 15, search);
@@ -148,9 +213,9 @@ function UsersTab() {
             setTotalPages(data.totalPages);
         } catch (err) { console.error(err); }
         setLoading(false);
-    };
+    }, [page, search]);
 
-    useEffect(() => { fetchUsers(); }, [page, search]);
+    useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
     const handleBan = async (userId: string) => {
         try {
@@ -167,7 +232,7 @@ function UsersTab() {
         } catch (err) { console.error(err); }
     };
 
-    const handleEdit = (user: any) => {
+    const handleEdit = (user: AdminUser) => {
         setEditingUser(user);
         setEditForm({
             name: user.name,
@@ -178,6 +243,7 @@ function UsersTab() {
     };
 
     const handleSaveEdit = async () => {
+        if (!editingUser) return;
         try {
             await adminApi.editUser(editingUser.id, editForm);
             setEditingUser(null);
@@ -318,14 +384,14 @@ function UsersTab() {
 // ===================== CONTENT TAB =====================
 
 function ContentTab() {
-    const [paths, setPaths] = useState<any[]>([]);
-    const [topics, setTopics] = useState<any[]>([]);
-    const [problems, setProblems] = useState<any[]>([]);
+    const [paths, setPaths] = useState<LearningPath[]>([]);
+    const [topics, setTopics] = useState<Topic[]>([]);
+    const [problems, setProblems] = useState<AdminProblem[]>([]);
     const [selectedPath, setSelectedPath] = useState<string>('');
     const [selectedTopic, setSelectedTopic] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [editingProblem, setEditingProblem] = useState<any>(null);
+    const [editingProblem, setEditingProblem] = useState<AdminProblem | null>(null);
     const [form, setForm] = useState({ title: '', difficulty: 'Easy', description: '', video_link: '', problem_link: '', tags: '' });
 
     useEffect(() => {
@@ -367,6 +433,7 @@ function ContentTab() {
     };
 
     const handleEditSave = async () => {
+        if (!editingProblem) return;
         try {
             await adminApi.editProblem(editingProblem.id, {
                 title: form.title,
@@ -392,7 +459,7 @@ function ContentTab() {
         } catch (err) { console.error(err); }
     };
 
-    const openEdit = (p: any) => {
+    const openEdit = (p: AdminProblem) => {
         setEditingProblem(p);
         setForm({
             title: p.title,
@@ -530,14 +597,14 @@ function ContentTab() {
 // ===================== FORUM TAB =====================
 
 function ForumTab() {
-    const [posts, setPosts] = useState<any[]>([]);
+    const [posts, setPosts] = useState<AdminForumPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [editingPost, setEditingPost] = useState<any>(null);
+    const [editingPost, setEditingPost] = useState<AdminForumPost | null>(null);
     const [editForm, setEditForm] = useState({ title: '', content: '', category: 'general', isPinned: false });
 
-    const fetchPosts = async () => {
+    const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -547,9 +614,9 @@ function ForumTab() {
             setTotalPages(data.totalPages || 1);
         } catch (err) { console.error(err); }
         setLoading(false);
-    };
+    }, [page]);
 
-    useEffect(() => { fetchPosts(); }, [page]);
+    useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Delete this post?')) return;
@@ -559,7 +626,7 @@ function ForumTab() {
         } catch (err) { console.error(err); }
     };
 
-    const handleEdit = async (post: any) => {
+    const handleEdit = async (post: AdminForumPost) => {
         // Fetch full post to get replies if they aren't included (fetchPosts aggregation doesn't include them)
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -575,6 +642,7 @@ function ForumTab() {
     };
 
     const handleSaveEdit = async () => {
+        if (!editingPost) return;
         try {
             await adminApi.editForumPost(editingPost.id, editForm);
             setEditingPost(null);
@@ -683,7 +751,7 @@ function ForumTab() {
                                 <div className="mt-4">
                                     <label className="text-xs font-medium text-white/50 uppercase tracking-wider mb-2 block">Replies ({editingPost.replies.length})</label>
                                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                                        {editingPost.replies.map((reply: any) => (
+                                        {editingPost.replies.map((reply: AdminForumReply) => (
                                             <div key={reply.id} className="p-3 rounded-lg bg-white/5 border border-white/5 flex items-start justify-between gap-3">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs text-white/80 line-clamp-2">{reply.content}</p>

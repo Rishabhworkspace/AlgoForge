@@ -42,7 +42,13 @@ export function Notes() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editForm, setEditForm] = useState({ content: '' });
-  const [problems, setProblems] = useState<any[]>([]);
+  
+  interface Problem {
+    id: string;
+    title: string;
+    difficulty?: string;
+  }
+  const [problems, setProblems] = useState<Problem[]>([]);
 
   // New note creation state
   const [newNoteProblemId, setNewNoteProblemId] = useState('');
@@ -64,7 +70,7 @@ export function Notes() {
         const notesFromProgress: Note[] = progressData
           .filter((p: any) => p.notes && p.notes.trim() !== '')
           .map((p: any) => {
-            const problem = problemsData.find((prob: any) => prob.id === p.problem_id);
+            const problem = problemsData.find((prob: Problem) => prob.id === p.problem_id);
             return {
               id: p.id,
               problemId: p.problem_id,
@@ -132,7 +138,7 @@ export function Notes() {
           throw new Error('Invalid ID returned from backend');
         }
 
-        const problem = problems.find((p: any) => p.id === newNoteProblemId);
+        const problem = problems.find((p: Problem) => p.id === newNoteProblemId);
         const newNote: Note = {
           id: realNoteId,
           problemId: newNoteProblemId,
@@ -142,7 +148,7 @@ export function Notes() {
         };
         setNotes([newNote, ...notes]);
         toast.success('Note created successfully');
-      } catch (e) {
+      } catch {
         toast.error('Failed to create note');
         return;
       }
@@ -160,7 +166,7 @@ export function Notes() {
             : n
         ));
         toast.success('Note updated successfully');
-      } catch (e) {
+      } catch {
         toast.error('Failed to update note');
         return;
       }
@@ -347,7 +353,7 @@ export function Notes() {
                       />
                       {problemSearch && (
                         <div className="max-h-40 overflow-y-auto rounded-lg border border-white/10 bg-[#1a1a1a]">
-                          {availableProblems.slice(0, 8).map((p: any) => (
+                          {availableProblems.slice(0, 8).map((p: Problem) => (
                             <button
                               key={p.id}
                               onClick={() => {
@@ -368,9 +374,9 @@ export function Notes() {
                           )}
                         </div>
                       )}
-                      {newNoteProblemId && !problemSearch.includes(problems.find((p: any) => p.id === newNoteProblemId)?.title || '') && (
+                      {newNoteProblemId && !problemSearch.includes(problems.find((p: Problem) => p.id === newNoteProblemId)?.title || '') && (
                         <p className="text-xs text-[#a088ff] mt-1">
-                          Selected: {problems.find((p: any) => p.id === newNoteProblemId)?.title}
+                          Selected: {problems.find((p: Problem) => p.id === newNoteProblemId)?.title}
                         </p>
                       )}
                     </div>
