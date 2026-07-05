@@ -117,6 +117,103 @@ describe('streak logic in updateProblemStatus', () => {
             data: expect.objectContaining({ streak_days: 7 })
         }));
     });
+
+    // ── UTC timezone edge-case tests ──────────────────────────────
+
+    it('starts streak at 1 for new user with no last_active', async () => {
+        (prisma.userProgress.findUnique as any).mockResolvedValue(null);
+        (prisma.userProgress.create as any).mockResolvedValue({ id: 'p1', status: 'SOLVED' });
+        (prisma.user.findUnique as any).mockResolvedValue({
+            ...baseUser,
+            last_active: null,
+            streak_days: 0
+        });
+        (prisma.user.update as any).mockResolvedValue({});
+
+        const req = mockReq({ problemId: 'prob1' }, { status: 'SOLVED' });
+        const res = mockRes();
+
+        await updateProblemStatus(req, res);
+
+        expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ streak_days: 1 })
+        }));
+    });
+
+    it('uses UTC date for comparison (same UTC day despite different local hours)', async () => {
+        // Simulate: last_active was at 23:30 UTC today (same UTC day as now)
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const lastActiveAt2330UTC = new Date(`${todayStr}T23:30:00.000Z`);
+
+        (prisma.userProgress.findUnique as any).mockResolvedValue(null);
+        (prisma.userProgress.create as any).mockResolvedValue({ id: 'p1', status: 'SOLVED' });
+        (prisma.user.findUnique as any).mockResolvedValue({
+            ...baseUser,
+            last_active: lastActiveAt2330UTC,
+            streak_days: 5
+        });
+        (prisma.user.update as any).mockResolvedValue({});
+
+        const req = mockReq({ problemId: 'prob1' }, { status: 'SOLVED' });
+        const res = mockRes();
+
+        await updateProblemStatus(req, res);
+
+        // Same UTC day → streak unchanged
+        expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ streak_days: 5 })
+        }));
+    });
+
+    it('increments streak when last active was previous UTC day', async () => {
+        // Simulate: last_active was 23:59 UTC yesterday
+        const now = new Date();
+        const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
+        const lastActiveAt2359UTC = new Date(`${yesterdayStr}T23:59:00.000Z`);
+
+        (prisma.userProgress.findUnique as any).mockResolvedValue(null);
+        (prisma.userProgress.create as any).mockResolvedValue({ id: 'p1', status: 'SOLVED' });
+        (prisma.user.findUnique as any).mockResolvedValue({
+            ...baseUser,
+            last_active: lastActiveAt2359UTC,
+            streak_days: 10
+        });
+        (prisma.user.update as any).mockResolvedValue({});
+
+        const req = mockReq({ problemId: 'prob1' }, { status: 'SOLVED' });
+        const res = mockRes();
+
+        await updateProblemStatus(req, res);
+
+        // Previous UTC day → streak increments
+        expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ streak_days: 11 })
+        }));
+    });
+
+    it('resets streak when last active was 3 days ago (UTC)', async () => {
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+        (prisma.userProgress.findUnique as any).mockResolvedValue(null);
+        (prisma.userProgress.create as any).mockResolvedValue({ id: 'p1', status: 'SOLVED' });
+        (prisma.user.findUnique as any).mockResolvedValue({
+            ...baseUser,
+            last_active: threeDaysAgo,
+            streak_days: 15
+        });
+        (prisma.user.update as any).mockResolvedValue({});
+
+        const req = mockReq({ problemId: 'prob1' }, { status: 'SOLVED' });
+        const res = mockRes();
+
+        await updateProblemStatus(req, res);
+
+        expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ streak_days: 1 })
+        }));
+    });
 });
 
 // ── XP tests ──────────────────────────────────────────────────

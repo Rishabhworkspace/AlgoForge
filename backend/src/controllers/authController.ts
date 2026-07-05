@@ -3,12 +3,13 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
 import { OAuth2Client } from 'google-auth-library';
+import { config } from '../config/env';
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 // Generate JWT
 const generateToken = (id: string) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
+    return jwt.sign({ id }, config.JWT_SECRET!, { expiresIn: '30d' });
 };
 
 // @desc    Register new user
@@ -97,7 +98,7 @@ export const googleAuth = async (req: Request, res: Response) => {
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: config.GOOGLE_CLIENT_ID
         });
 
         const payload = ticket.getPayload();

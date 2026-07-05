@@ -15,9 +15,24 @@ import { getAllProblems } from '@/api/content';
 import { updateProblemStatus, getUserProgress } from '@/api/userActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { SOLVE_XP } from '@/utils/xpConfig';
 
 interface DailyChallengesProps {
     onBack: () => void;
+}
+
+interface DailyProblem {
+    id: string;
+    title: string;
+    difficulty: string;
+    video_link?: string;
+    problem_link?: string;
+    tags?: string[];
+}
+
+interface DailyProgressItem {
+    status: string;
+    problem_id: string;
 }
 /**
  * Generates a deterministic FNV-1a hash from a string.
@@ -37,7 +52,7 @@ const hashString = (str: string): number => {
 };
 export function DailyChallenges({ onBack }: DailyChallengesProps) {
     const { refreshProfile } = useAuth();
-    const [allProblems, setAllProblems] = useState<any[]>([]);
+    const [allProblems, setAllProblems] = useState<DailyProblem[]>([]);
     const [completedProblems, setCompletedProblems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const [dayKey, setDayKey] = useState(
@@ -54,7 +69,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                 try {
                     const progressData = await getUserProgress();
                     const completed = new Set<string>();
-                    progressData.forEach((p: any) => {
+                    progressData.forEach((p: DailyProgressItem) => {
                         if (p.status === 'SOLVED') completed.add(p.problem_id);
                     });
                     setCompletedProblems(completed);
@@ -117,7 +132,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
         
 
 
-        const selected = [easy, medium, hard].filter(Boolean);
+        const selected = [easy, medium, hard].filter((p): p is DailyProblem => p !== undefined);
         // Fallback: if we don't have all 3 difficulties, just take first 3
         if (selected.length < 3) {
             return shuffled.slice(0, 3);
@@ -140,7 +155,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
 
         try {
             await updateProblemStatus(problemMongoId, wasCompleted ? 'TODO' : 'SOLVED');
-            if (!wasCompleted) toast.success('Challenge problem solved! +25 XP');
+            if (!wasCompleted) toast.success(`Challenge problem solved! +${SOLVE_XP} XP`);
             refreshProfile();
         } catch {
             setCompletedProblems(prev => {
@@ -205,7 +220,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 rounded-full glass">
                             <Zap className="w-5 h-5 text-[#ffd700]" />
-                            <span className="text-white font-medium">{challengesSolved * 25} XP Earned</span>
+                            <span className="text-white font-medium">{challengesSolved * SOLVE_XP} XP Earned</span>
                         </div>
                     </div>
                 </motion.div>
@@ -309,7 +324,7 @@ export function DailyChallenges({ onBack }: DailyChallengesProps) {
                                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
                                     <Zap className="w-4 h-4 text-[#ffd700]" />
                                     <span className="text-sm text-white/40">
-                                        {isCompleted ? 'Earned' : 'Reward'}: <span className="text-[#ffd700]">+25 XP</span>
+                                        {isCompleted ? 'Earned' : 'Reward'}: <span className="text-[#ffd700]">+{SOLVE_XP} XP</span>
                                     </span>
                                 </div>
                             </motion.div>

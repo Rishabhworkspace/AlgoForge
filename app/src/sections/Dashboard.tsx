@@ -17,14 +17,53 @@ import {
   BarChart3,
   Swords,
   Crown,
-  Footprints
+  Footprints,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAllProblems, getAllTopics } from '@/api/content';
 import { getUserProgress, getDashboardStats } from '@/api/userActions';
+import { SOLVE_XP, XP_PER_LEVEL, calculateLevel } from '@/utils/xpConfig';
 
 interface DashboardProps {
   onNavigate: (view: 'home' | 'dashboard' | 'topic' | 'problems' | 'notes' | 'leaderboard' | 'daily-challenges', topicId?: string) => void;
+}
+
+interface UserProgressItem {
+  status: string;
+  problem_id: string;
+  updatedAt: string;
+}
+
+interface ProblemItem {
+  id: string;
+  title: string;
+  difficulty: string;
+  topic_id: string;
+}
+
+interface TopicItem {
+  id: string;
+  title: string;
+  color?: string;
+}
+
+interface WeeklyActivityItem {
+  date: string;
+  count: number;
+}
+
+interface RecentActivityItem {
+  problem: string;
+  difficulty: string;
+  time: string;
+}
+
+interface ContinueTopic extends TopicItem {
+  solvedInTopic: number;
+  totalInTopic: number;
+  progress: number;
+  lastSolveDate: number;
 }
 
 /* ─── Animated Counter Hook ─── */
@@ -65,10 +104,45 @@ function timeAgo(dateStr: string): string {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [hoveredDonut, setHoveredDonut] = useState<string | null>(null);
+
+  // ── Refresh button state ──
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleRefresh = async () => {
+    if (isRefreshing || cooldownSeconds > 0) return;
+    setIsRefreshing(true);
+    try {
+      await refreshProfile();
+      // Refetch React Query caches
+      setLastUpdated(new Date());
+    } finally {
+      setIsRefreshing(false);
+      setCooldownSeconds(10);
+      // Start 10-second cooldown
+      const tick = () => {
+        setCooldownSeconds((prev) => {
+          if (prev <= 1) return 0;
+          cooldownRef.current = setTimeout(tick, 1000);
+          return prev - 1;
+        });
+      };
+      cooldownRef.current = setTimeout(tick, 1000);
+    }
+  };
+
+  // Cleanup cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearTimeout(cooldownRef.current);
+    };
+  }, []);
 
   const { data: problemsData = [], isLoading: problemsLoading } = useQuery({
     queryKey: ['problems'],
@@ -99,26 +173,26 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const loading = problemsLoading || topicsLoading || progressLoading || statsLoading;
 
   const stats = useMemo(() => {
-    const solvedProgress = userProgress.filter((p: any) => p.status === 'SOLVED');
-    const solvedIds = new Set(solvedProgress.map((p: any) => p.problem_id));
+    const solvedProgress = userProgress.filter((p: UserProgressItem) => p.status === 'SOLVED');
+    const solvedIds = new Set(solvedProgress.map((p: UserProgressItem) => p.problem_id));
 
     const totalSolved = solvedIds.size;
     const totalProblems = problems.length;
-    const xpPoints = profile?.xp_points ?? totalSolved * 25;
+    const xpPoints = profile?.xp_points ?? totalSolved * SOLVE_XP;
 
     let easy = 0, medium = 0, hard = 0;
     let easyTotal = 0, mediumTotal = 0, hardTotal = 0;
-    problems.forEach((p: any) => {
+    problems.forEach((p: ProblemItem) => {
       if (p.difficulty === 'Easy') { easyTotal++; if (solvedIds.has(p.id)) easy++; }
       else if (p.difficulty === 'Medium') { mediumTotal++; if (solvedIds.has(p.id)) medium++; }
       else if (p.difficulty === 'Hard') { hardTotal++; if (solvedIds.has(p.id)) hard++; }
     });
 
     const recent = solvedProgress
-      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .sort((a: UserProgressItem, b: UserProgressItem) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, 5)
-      .map((p: any) => {
-        const prob = problems.find((prob: any) => prob.id === p.problem_id);
+      .map((p: UserProgressItem) => {
+        const prob = problems.find((prob: ProblemItem) => prob.id === p.problem_id);
         return {
           problem: prob ? prob.title : 'Unknown Problem',
           time: p.updatedAt,
@@ -138,7 +212,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }, [problems, userProgress, dashboardStats, profile]);
 
   const weeklyProgress = useMemo(() => {
-    if (dashboardStats?.weeklyActivity) return dashboardStats.weeklyActivity.map((d: any) => d.count);
+    if (dashboardStats?.weeklyActivity) return dashboardStats.weeklyActivity.map((d: WeeklyActivityItem) => d.count);
     return [0, 0, 0, 0, 0, 0, 0];
   }, [dashboardStats]);
 
@@ -150,24 +224,24 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }, [dashboardStats]);
 
   const continueTopics = useMemo(() => {
-    const solvedProgress = userProgress.filter((p: any) => p.status === 'SOLVED');
-    const solvedIds = new Set(solvedProgress.map((p: any) => p.problem_id));
+    const solvedProgress = userProgress.filter((p: UserProgressItem) => p.status === 'SOLVED');
+    const solvedIds = new Set(solvedProgress.map((p: UserProgressItem) => p.problem_id));
 
-    return topics.map((topic: any) => {
-      const topicProblems = problems.filter((p: any) => p.topic_id === topic.id);
+    return topics.map((topic: TopicItem) => {
+      const topicProblems = problems.filter((p: ProblemItem) => p.topic_id === topic.id);
       const totalInTopic = topicProblems.length;
-      const solvedInTopic = topicProblems.filter((p: any) => solvedIds.has(p.id)).length;
+      const solvedInTopic = topicProblems.filter((p: ProblemItem) => solvedIds.has(p.id)).length;
       const progress = totalInTopic > 0 ? Math.round((solvedInTopic / totalInTopic) * 100) : 0;
 
-      const topicProblemIds = new Set(topicProblems.map((p: any) => p.id));
-      const topicSolves = solvedProgress.filter((p: any) => topicProblemIds.has(p.problem_id));
+      const topicProblemIds = new Set(topicProblems.map((p: ProblemItem) => p.id));
+      const topicSolves = solvedProgress.filter((p: UserProgressItem) => topicProblemIds.has(p.problem_id));
       const lastSolveDate = topicSolves.length > 0
-        ? Math.max(...topicSolves.map((p: any) => new Date(p.updatedAt).getTime()))
+        ? Math.max(...topicSolves.map((p: UserProgressItem) => new Date(p.updatedAt).getTime()))
         : 0;
 
       return { ...topic, solvedInTopic, totalInTopic, progress, lastSolveDate };
     })
-      .sort((a: any, b: any) => {
+      .sort((a: ContinueTopic, b: ContinueTopic) => {
         if (a.solvedInTopic > 0 && b.solvedInTopic === 0) return -1;
         if (a.solvedInTopic === 0 && b.solvedInTopic > 0) return 1;
         return b.lastSolveDate - a.lastSolveDate;
@@ -177,7 +251,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const dayLabels = useMemo(() => {
     if (dashboardStats?.weeklyActivity) {
-      return dashboardStats.weeklyActivity.map((d: any) => {
+      return dashboardStats.weeklyActivity.map((d: WeeklyActivityItem) => {
         const date = new Date(d.date + 'T00:00:00');
         return date.toLocaleDateString('en-US', { weekday: 'short' });
       });
@@ -245,7 +319,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
   }
 
-  const level = Math.floor((stats.xpPoints) / 1000) + 1;
+  const level = calculateLevel(stats.xpPoints);
 
   if (loading) {
     return (
@@ -285,9 +359,29 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <span className="text-white/30 text-xs hidden sm:inline">
+                Updated {Math.floor((Date.now() - lastUpdated.getTime()) / 1000)}s ago
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleRefresh}
+                disabled={isRefreshing || cooldownSeconds > 0}
+                aria-label={cooldownSeconds > 0 ? `Refresh available in ${cooldownSeconds} seconds` : 'Refresh dashboard stats'}
+                className={`flex items-center gap-2 px-3 py-2 rounded-full glass text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a088ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f16] ${
+                  isRefreshing || cooldownSeconds > 0
+                    ? 'text-white/30 cursor-not-allowed'
+                    : 'text-white/70 hover:text-white cursor-pointer'
+                }`}
+                title={cooldownSeconds > 0 ? `Refresh available in ${cooldownSeconds}s` : 'Refresh stats'}
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span aria-live="polite">{cooldownSeconds > 0 ? `${cooldownSeconds}s` : 'Refresh'}</span>
+              </motion.button>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-full glass cursor-default"
+                title="Streak resets at midnight UTC"
               >
                 <Flame className={`w-5 h-5 ${stats.currentStreak > 0 ? 'text-[#ff8a63]' : 'text-white/30'}`} />
                 <span className="text-white font-medium">{animStreak} day streak</span>
@@ -333,7 +427,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onNavigate(action.view)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 transition-all group"
+              aria-label={`Navigate to ${action.label}`}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/20 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a088ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f16]"
             >
               <action.icon className="w-4 h-4 transition-colors" style={{ color: action.color }} />
               <span className="text-sm text-white/70 group-hover:text-white transition-colors">{action.label}</span>
@@ -350,8 +445,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         >
           {[
             { label: 'Problems Solved', value: animSolved, sub: `of ${stats.totalProblems}`, icon: CheckCircle2, color: '#a088ff', glow: 'rgba(160,136,255,0.15)' },
-            { label: 'XP Points', value: animXP, sub: `Level ${level}`, icon: Zap, color: '#ffd700', glow: 'rgba(255,215,0,0.12)' },
+            { label: 'XP Points', value: animXP, sub: `Level ${level}`, icon: Zap, color: '#ffd700', glow: 'rgba(255,215,0,0.12)', tooltip: `Earn ${SOLVE_XP} XP per solved problem. Every ${XP_PER_LEVEL.toLocaleString()} XP = 1 Level.` },
             { label: 'Day Streak', value: animStreak, sub: stats.currentStreak > 0 ? 'Keep it up!' : 'Solve to start!', icon: Flame, color: '#ff8a63', glow: 'rgba(255,138,99,0.12)' },
+            { label: 'XP Points', value: animXP, sub: `Level ${level}`, icon: Zap, color: '#ffd700', glow: 'rgba(255,215,0,0.12)' },
+            { label: 'Day Streak', value: animStreak, sub: 'Resets at midnight UTC', icon: Flame, color: '#ff8a63', glow: 'rgba(255,138,99,0.12)' },
             { label: 'Global Rank', value: `#${rankInfo.rank}`, sub: `Top ${rankInfo.topPercent}%`, icon: Trophy, color: '#88ff9f', glow: 'rgba(136,255,159,0.12)' },
           ].map((stat) => (
             <motion.div
@@ -359,7 +456,24 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               whileHover={{ scale: 1.03, y: -4 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               className="relative glass rounded-2xl p-5 overflow-hidden group cursor-default"
+              role="status"
+              aria-label={`${stat.label}: ${stat.value}`}
             >
+              {stat.tooltip && (
+                <div className="absolute top-2 right-2 z-20">
+                  <div className="relative group/tooltip">
+                    <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/40 cursor-help">?</div>
+                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 rounded-lg bg-[#1e1e2d] border border-white/10 text-xs text-white/70 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-30">
+                      {stat.tooltip}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isRefreshing && (
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+                  <RefreshCw className="w-5 h-5 text-white/50 animate-spin" />
+                </div>
+              )}
               <div className="flex items-center gap-3 mb-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
@@ -686,7 +800,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {continueTopics.map((topic: any, i: number) => {
+                {continueTopics.map((topic: ContinueTopic, i: number) => {
                   const intensity = topic.progress / 100;
                   return (
                     <motion.button
@@ -697,7 +811,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       whileHover={{ scale: 1.06, y: -3 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => onNavigate('topic', topic.id)}
-                      className="relative p-4 rounded-xl text-left overflow-hidden transition-all border border-white/5 hover:border-white/15 group"
+                      aria-label={`${topic.title}: ${topic.progress}% complete, ${topic.solvedInTopic} of ${topic.totalInTopic} problems solved`}
+                      className="relative p-4 rounded-xl text-left overflow-hidden transition-all border border-white/5 hover:border-white/15 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a088ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f16]"
                       style={{
                         background: `linear-gradient(135deg, rgba(160,136,255,${0.05 + intensity * 0.2}) 0%, rgba(99,227,255,${0.02 + intensity * 0.1}) 100%)`
                       }}
@@ -741,7 +856,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 Recent Activity
               </h3>
               <div className="space-y-2">
-                {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity: any, index: number) => {
+                {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity: RecentActivityItem, index: number) => {
                   const diffColor = activity.difficulty === 'Easy' ? '#22c55e' :
                     activity.difficulty === 'Medium' ? '#eab308' : '#ef4444';
                   return (
@@ -768,7 +883,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs font-medium text-[#88ff9f]/70">+25 XP</span>
+                      <span className="text-xs font-medium text-[#88ff9f]/70">+{SOLVE_XP} XP</span>
                     </motion.div>
                   );
                 }) : (
@@ -842,12 +957,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             >
               <h3 className="text-lg font-semibold text-white mb-4">Continue Learning</h3>
               <div className="space-y-2">
-                {continueTopics.slice(0, 4).map((topic: any) => (
+                {continueTopics.slice(0, 4).map((topic: ContinueTopic) => (
                   <motion.button
                     key={topic.id}
                     whileHover={{ x: 4 }}
                     onClick={() => onNavigate('topic', topic.id)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] transition-all text-left group border border-transparent hover:border-white/10"
+                    aria-label={`Continue learning ${topic.title}: ${topic.progress}% complete`}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] transition-all text-left group border border-transparent hover:border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a088ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f16]"
                   >
                     <div
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -895,7 +1011,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onNavigate('daily-challenges')}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#ff8a63] to-[#ff6347] text-white font-semibold hover:shadow-lg hover:shadow-[#ff8a63]/20 transition-all"
+                  aria-label="Start today's daily challenge"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#ff8a63] to-[#ff6347] text-white font-semibold hover:shadow-lg hover:shadow-[#ff8a63]/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8a63] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f16]"
                 >
                   Start Challenge →
                 </motion.button>

@@ -27,7 +27,7 @@ import {
 
 interface NavigationProps {
   currentView: string;
-  onNavigate: (view: 'home' | 'dashboard' | 'topic' | 'problems' | 'notes' | 'leaderboard') => void;
+  onNavigate: (view: 'home' | 'dashboard' | 'topic' | 'problems' | 'notes' | 'leaderboard' | 'admin') => void;
   onAuthClick: (mode: 'login' | 'signup') => void;
 }
 
@@ -71,7 +71,7 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
     { id: 'roadmaps', label: 'Roadmaps', icon: Map, view: 'home' as const, isAnchor: true },
     { id: 'problems', label: 'Problems', icon: List, view: 'problems' as const, isAnchor: false },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, view: 'leaderboard' as const, isAnchor: false },
-    ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Shield, view: 'admin' as any, isAnchor: false }] : []),
+    ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Shield, view: 'admin' as const, isAnchor: false }] : []),
   ];
 
   const handleNavClick = (link: typeof navLinks[0]) => {
