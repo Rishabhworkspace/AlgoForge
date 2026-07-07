@@ -111,7 +111,7 @@ export const getMyLeaderboardRank = async (req: Request | any, res: Response) =>
 
         rankPipeline.push({ $count: 'above' });
 
-        const rankResult = await prisma.user.aggregateRaw({ rankPipeline }) as unknown as any[];
+        const rankResult = await prisma.user.aggregateRaw({ pipeline: rankPipeline }) as unknown as any[];
         const rank = (rankResult[0]?.above || 0) + 1;
 
         const solvedCount = user.solvedProblems?.length || 0;
