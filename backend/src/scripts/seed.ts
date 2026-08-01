@@ -13,6 +13,7 @@ import { dpProblems } from './data/dp';
 import { graphProblems } from './data/graphs';
 import { interviewProblems } from './data/interview';
 import { systemDesignProblems } from './data/system-design';
+import { terminalCatalogByTitle } from './data/terminalCatalog';
 
 const seedData = async () => {
     try {
@@ -55,6 +56,7 @@ const seedData = async () => {
         ];
 
         const problems = allRawProblems.map((p, index) => {
+            const terminalProblem = terminalCatalogByTitle.get(p.title);
             const slug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
             return {
                 title: p.title,
@@ -63,7 +65,8 @@ const seedData = async () => {
                 tags: p.tags,
                 video_link: `https://www.youtube.com/results?search_query=${encodeURIComponent(p.title + ' leetcode solution')}`,
                 problem_link: `https://leetcode.com/problems/${slug}/`,
-                description: `Practice problem: ${p.title}. Analyze the time and space complexity. Solved commonly using ${p.tags.join(', ')}.`,
+                description: terminalProblem?.description || `Practice problem: ${p.title}. Analyze the time and space complexity. Solved commonly using ${p.tags.join(', ')}.`,
+                testCases: terminalProblem?.testCases || [],
                 order_index: index + 1
             };
         });

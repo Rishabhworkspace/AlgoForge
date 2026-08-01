@@ -174,7 +174,10 @@ export const getProblemById = async (req: Request, res: Response) => {
         if (!problem) {
             return res.status(404).json({ message: 'Problem not found' });
         }
-        res.json(problem);
+        res.json({
+            ...problem,
+            testCases: problem.testCases.filter(testCase => !testCase.isHidden)
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
@@ -226,35 +229,60 @@ export const executeCode = async (req: Request, res: Response) => {
             java: '15.0.2'
         };
 
-        const version = PISTON_LANGUAGES[language] || '*';
+        const version = PISTON_LANGUAGES[language];
+        if (!version) {
+            return res.status(400).json({ message: 'Unsupported language' });
+        }
 
-        // If no test cases exist, just run the code with empty stdin
-        const testCases = problem.testCases && problem.testCases.length > 0
-            ? problem.testCases
-            : [{ input: '', expectedOutput: '', isHidden: false }];
+        const testCases = problem.testCases || [];
+        if (testCases.length < 3) {
+            return res.status(422).json({
+                message: 'This problem is not ready for execution: it needs at least three test cases.'
+            });
+        }
 
         const results = await Promise.all(testCases.map(async (testCase) => {
-            const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    language,
-                    version,
-                    files: [
-                        { content: code }
-                    ],
-                    stdin: testCase.input,
-                    args: [],
-                    compile_timeout: 10000,
-                    run_timeout: 3000,
-                    compile_memory_limit: -1,
-                    run_memory_limit: -1
-                })
-            });
-
-            const data = await response.json();
+            let data: any;
+            try {
+                const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        language,
+                        version,
+                        files: [
+                            { content: code }
+                        ],
+                        stdin: testCase.input,
+                        args: [],
+                        compile_timeout: 10000,
+                        run_timeout: 3000,
+                        compile_memory_limit: -1,
+                        run_memory_limit: -1
+                    }),
+                    signal: AbortSignal.timeout(15000)
+                });
+                if (!response.ok) {
+                    throw new Error(`Execution service returned ${response.status}`);
+                }
+                data = await response.json();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Execution service unavailable';
+                return {
+                    input: testCase.isHidden ? 'Hidden Test Case' : testCase.input,
+                    expectedOutput: testCase.isHidden ? 'Hidden' : testCase.expectedOutput,
+                    output: testCase.isHidden ? 'Hidden Test Case Failed' : '',
+                    stdout: testCase.isHidden ? 'Hidden' : '',
+                    stderr: testCase.isHidden ? 'Hidden Error' : message,
+                    error: testCase.isHidden ? 'Hidden Error' : message,
+                    passed: false,
+                    isError: true,
+                    executionTime: 'Error',
+                    isHidden: testCase.isHidden
+                };
+            }
             const output = data.run?.output || data.message || 'No output';
             const stdout = data.run?.stdout || '';
             const stderr = data.run?.stderr || '';
