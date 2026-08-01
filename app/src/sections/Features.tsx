@@ -1,174 +1,85 @@
-
-import { useRef, useState } from 'react';
+import { BarChart3, BookOpen, Code2, Play, Target, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Play, Code2, BarChart3, BookOpen, Target, Trophy } from 'lucide-react';
 import { useStats } from '@/hooks/useStats';
 
-
-
-function SpotlightCard({ children, className = "", color = "#ffffff" }: { children: React.ReactNode; className?: string; color?: string }) {
-  const divRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!divRef.current) return;
-    const rect = divRef.current.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
-  const handleMouseEnter = () => setOpacity(1);
-  const handleMouseLeave = () => setOpacity(0);
-
-  return (
-    <div
-      ref={divRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 ${className}`}
-    >
-      <div
-        className="pointer-events-none absolute -inset-px transition duration-300 z-10"
-        style={{
-          opacity,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, ${color}15, transparent 40%)`,
-        }}
-      />
-      {children}
-    </div>
-  );
-}
+const features = [
+  [Play, 'Study the reasoning', 'Clear video explanations and interactive diagrams that make the mental pattern behind every solution stick.', '#fa6a20'],
+  [Code2, 'Practice with a target', 'A curated problem set that builds algorithmic intuition at the pace you can sustain under real interview pressure.', '#00f0ff'],
+  [BarChart3, 'See real progress', 'Spot your consistency, momentum, and next best step with instant time complexity telemetry without guessing.', '#a088ff'],
+  [BookOpen, 'Keep what you learn', 'Attach concise notes to every problem, build custom flashcards, and make revision genuinely useful.', '#ffae62'],
+  [Target, 'Make practice a habit', 'Daily challenges turn positive intent into a reliable study rhythm that compounds daily.', '#00f0ff'],
+  [Trophy, 'Stay in the game', 'Streaks and a live global leaderboard add healthy competitive pressure when motivation fades.', '#fa6a20'],
+] as const;
 
 export function Features() {
   const { problemCount } = useStats();
 
-  const features = [
-    {
-      icon: Play,
-      title: 'Video Solutions',
-      description: 'Watch step-by-step explanations for every problem. Learn from expert instructors with clear, concise videos.',
-      color: '#a088ff',
-      offset: 0
-    },
-    {
-      icon: Code2,
-      title: 'Practice Problems',
-      description: `${problemCount} carefully curated problems from easy to hard. Practice with real interview questions from top companies.`,
-      color: '#63e3ff',
-      offset: 0
-    },
-    {
-      icon: BarChart3,
-      title: 'Progress Tracking',
-      description: 'Track your learning journey with detailed analytics. See your improvement over time with visual insights.',
-      color: '#ff8a63',
-      offset: 0
-    },
-    {
-      icon: BookOpen,
-      title: 'Personal Notes',
-      description: 'Take notes on any problem. Save your learnings and revisit them anytime with our markdown editor.',
-      color: '#88ff9f',
-      offset: 0
-    },
-    {
-      icon: Target,
-      title: 'Daily Challenges',
-      description: 'Get a new set of problems every day. Maintain your streak and build consistent learning habits.',
-      color: '#ff88c9',
-      offset: 0
-    },
-    {
-      icon: Trophy,
-      title: 'Gamification',
-      description: 'Earn XP, unlock badges, and climb the leaderboard. Make learning fun and competitive.',
-      color: '#ffd700',
-      offset: 0
-    }
-  ];
-
   return (
-    <section id="features" className="relative py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 isometric-pattern opacity-20" />
+    <section id="features" className="relative py-28 overflow-hidden bg-[#050505]">
+      {/* Subtle Ethereal Glows */}
+      <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#fa6a20]/08 rounded-full blur-[140px] pointer-events-none -translate-x-1/2" />
+      <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-[#00f0ff]/06 rounded-full blur-[140px] pointer-events-none translate-x-1/2" />
 
-      {/* Gradient Orbs */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-[#a088ff]/10 rounded-full blur-[120px] -translate-y-1/2" />
-      <div className="absolute top-1/3 right-0 w-80 h-80 bg-[#63e3ff]/10 rounded-full blur-[100px]" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
+      <div className="forge-shell relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: '-15%' }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          className="text-center max-w-3xl mx-auto mb-20"
         >
-          <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
-            Everything You <span className="gradient-text">Need</span>
+          <div className="eyebrow-pill mx-auto mb-5">
+            <span /> SYSTEM ARCHITECTURE // DELIBERATE PRACTICE
+          </div>
+          <h2 className="font-sans text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
+            Built for the habits <br />
+            that <span className="text-[#00f0ff]">actually compound.</span>
           </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            A complete platform designed to help you master coding interviews
-            and become a better programmer.
+          <p className="text-lg text-white/60 leading-relaxed">
+            Everything stays pointed at one outcome: turning {problemCount.toLocaleString()} practice opportunities into high-signal recall and elite technical mastery.
           </p>
         </motion.div>
 
-        {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: feature.offset }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.6,
-                delay: index * 0.1,
-                ease: [0.16, 1, 0.3, 1] as const
-              }}
-              className="h-full"
+          {features.map(([Icon, title, description, accentColor], index) => (
+            <motion.article
+              key={title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-10%' }}
+              transition={{ duration: 0.45, delay: index * 0.07, ease: [0.23, 1, 0.32, 1] }}
+              className="doppelrand-shell p-1.5 group cursor-pointer"
             >
-              <SpotlightCard className="h-full p-6" color={feature.color}>
-                {/* Holographic Border */}
-                <div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{
-                    background: `linear-gradient(135deg, ${feature.color}30, transparent 50%)`,
-                    padding: '1px'
-                  }}
-                />
+              <div className="doppelrand-core p-8 h-full flex flex-col justify-between relative overflow-hidden bg-[#0a0b0e] hover:bg-white/[0.03] transition-all duration-300">
+                {/* Top Number & Icon */}
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-white/5 text-white/40 border border-white/10 group-hover:text-white group-hover:border-white/30 transition-colors">
+                      0{index + 1}
+                    </span>
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 group-hover:scale-110 transition-transform shadow-lg"
+                      style={{ color: accentColor }}
+                    >
+                      <Icon size={22} strokeWidth={1.8} />
+                    </div>
+                  </div>
 
-                {/* Icon */}
-                <motion.div
-                  whileHover={{ rotate: 5, scale: 1.1 }}
-                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 relative z-20"
-                  style={{ background: `${feature.color}20` }}
-                >
-                  <feature.icon
-                    className="w-7 h-7"
-                    style={{ color: feature.color }}
-                  />
-                </motion.div>
-
-                {/* Content */}
-                <div className="relative z-20">
-                  <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-[#a088ff] transition-colors">
-                    {feature.title}
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#00f0ff] transition-colors">
+                    {title}
                   </h3>
-                  <p className="text-white/60 text-sm leading-relaxed">
-                    {feature.description}
+                  <p className="text-sm text-white/60 leading-relaxed">
+                    {description}
                   </p>
                 </div>
 
-                {/* Hover Glow */}
+                {/* Subtle bottom edge indicator */}
                 <div
-                  className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: feature.color }}
+                  className="w-12 h-0.5 rounded-full mt-8 transition-all duration-300 group-hover:w-full opacity-60"
+                  style={{ backgroundColor: accentColor }}
                 />
-              </SpotlightCard>
-            </motion.div>
+              </div>
+            </motion.article>
           ))}
         </div>
       </div>

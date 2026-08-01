@@ -1,181 +1,98 @@
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { MapPin, Play, Code2, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Code2, MapPin, Play, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const steps = [
-  {
-    number: '01',
-    title: 'Choose a Roadmap',
-    description: 'Select from our curated learning paths based on your goals. Whether you\'re preparing for interviews or learning DSA from scratch.',
-    icon: MapPin,
-    color: '#a088ff'
-  },
-  {
-    number: '02',
-    title: 'Watch & Learn',
-    description: 'Watch high-quality video explanations for each topic. Our instructors break down complex concepts into easy-to-understand lessons.',
-    icon: Play,
-    color: '#63e3ff'
-  },
-  {
-    number: '03',
-    title: 'Practice Daily',
-    description: 'Solve problems on LeetCode, CodeStudio, and other platforms. Apply what you\'ve learned with hands-on practice.',
-    icon: Code2,
-    color: '#ff8a63'
-  },
-  {
-    number: '04',
-    title: 'Track Progress',
-    description: 'Monitor your growth with detailed analytics. See your streak, completion rate, and areas that need more focus.',
-    icon: TrendingUp,
-    color: '#88ff9f'
-  }
-];
+  [MapPin, 'Pick a roadmap', 'Choose the exact algorithmic pattern or system design path you want to make bulletproof.', '#ffae62'],
+  [Play, 'Deconstruct the idea', 'Watch interactive 3D breakdowns and core reasoning before writing a single line of code.', '#00f0ff'],
+  [Code2, 'Put it under pressure', 'Solve timed, curated challenges in the live editor until you recognize the invariant instantly.', '#a088ff'],
+  [TrendingUp, 'Leverage the telemetry', 'Use instant complexity feedback and spaced repetition signals to decide what deserves your next study hour.', '#fa6a20'],
+] as const;
 
-
-interface HowItWorksProps {
-  onGetStarted?: () => void;
-}
-
-export function HowItWorks({ onGetStarted }: HowItWorksProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start end', 'end start']
-  });
-
-  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
-
+export function HowItWorks({ onGetStarted }: { onGetStarted?: () => void }) {
   return (
-    <section ref={containerRef} id="how-it-works" className="relative py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 grid-pattern opacity-20" />
+    <section id="how-it-works" className="relative py-28 overflow-hidden bg-[#050505]">
+      {/* Background Glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#fa6a20]/04 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
+      <div className="forge-shell relative z-10">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+          viewport={{ once: true, margin: '-15%' }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          className="text-center max-w-3xl mx-auto mb-20"
         >
-          <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
-            How It <span className="gradient-text">Works</span>
+          <div className="eyebrow-pill mx-auto mb-5">
+            <span /> FOUR-PHASE LOOP // RECALL PROTOCOL
+          </div>
+          <h2 className="font-sans text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
+            Four precise moves. <br />
+            <span className="text-[#ffae62]">One steady direction.</span>
           </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Start your coding journey in four simple steps.
-            Our structured approach ensures you learn effectively.
+          <p className="text-lg text-white/60 leading-relaxed">
+            A battle-tested workflow designed to eliminate wasted hours and turn complex concepts into instinctive problem-solving reflexes.
           </p>
         </motion.div>
 
-        {/* Steps */}
-        <div className="relative">
-          {/* Connecting Line - Desktop */}
-          <svg
-            className="absolute left-1/2 top-0 h-full w-2 -translate-x-1/2 hidden lg:block"
-            viewBox="0 0 2 100"
-            preserveAspectRatio="none"
-          >
-            <motion.path
-              d="M1 0 L1 100"
-              stroke="url(#gradient)"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-              style={{ pathLength }}
-            />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#a088ff" />
-                <stop offset="33%" stopColor="#63e3ff" />
-                <stop offset="66%" stopColor="#ff8a63" />
-                <stop offset="100%" stopColor="#88ff9f" />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          <div className="space-y-16 lg:space-y-24">
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.number}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-100px' }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative flex flex-col lg:flex-row items-center gap-8 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''
-                  }`}
-              >
-                {/* Content Card */}
-                <div className={`flex-1 ${index % 2 === 0 ? 'lg:text-right' : 'lg:text-left'}`}>
-                  <div className="glass rounded-2xl p-6 sm:p-8 inline-block max-w-lg">
-                    <div className={`flex items-center gap-4 mb-4 ${index % 2 === 0 ? 'lg:flex-row-reverse' : ''}`}>
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center"
-                        style={{ background: `${step.color}20` }}
-                      >
-                        <step.icon className="w-6 h-6" style={{ color: step.color }} />
-                      </div>
-                      <span
-                        className="font-display text-4xl"
-                        style={{ color: step.color }}
-                      >
-                        {step.number}
-                      </span>
+        {/* Steps Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 relative">
+          {steps.map(([Icon, title, description, accentColor], index) => (
+            <motion.article
+              key={title}
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-10%' }}
+              transition={{ duration: 0.45, delay: index * 0.08, ease: [0.23, 1, 0.32, 1] }}
+              className="doppelrand-shell p-1.5 group relative"
+            >
+              <div className="doppelrand-core p-7 h-full flex flex-col justify-between bg-[#0a0b0e] group-hover:bg-white/[0.03] transition-all duration-300">
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <span
+                      className="font-mono text-sm font-bold px-3 py-1 rounded-full bg-white/5 border border-white/10"
+                      style={{ color: accentColor }}
+                    >
+                      PHASE 0{index + 1}
+                    </span>
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 group-hover:scale-110 transition-transform shadow-md"
+                      style={{ color: accentColor }}
+                    >
+                      <Icon size={20} strokeWidth={1.8} />
                     </div>
-                    <h3 className="text-2xl font-semibold text-white mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-white/60 leading-relaxed">
-                      {step.description}
-                    </p>
                   </div>
+
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-white transition-colors">
+                    {title}
+                  </h3>
+                  <p className="text-sm text-white/60 leading-relaxed">
+                    {description}
+                  </p>
                 </div>
 
-                {/* Center Node */}
-                <div className="relative flex-shrink-0">
-                  <motion.div
-                    whileHover={{ scale: 1.2 }}
-                    className="w-16 h-16 rounded-full flex items-center justify-center z-10 relative"
-                    style={{
-                      background: `linear-gradient(135deg, ${step.color}, ${step.color}80)`,
-                      boxShadow: `0 0 30px ${step.color}50`
-                    }}
-                  >
-                    <CheckCircle2 className="w-8 h-8 text-white" />
-                  </motion.div>
-                  {/* Pulse Ring */}
-                  <motion.div
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute inset-0 rounded-full"
-                    style={{ background: step.color }}
-                  />
+                <div className="mt-6 flex items-center gap-2 text-xs font-mono font-semibold text-white/40 group-hover:text-white transition-colors">
+                  <span>Explore step</span>
+                  <ArrowRight size={13} />
                 </div>
-
-                {/* Spacer for alternating layout */}
-                <div className="flex-1 hidden lg:block" />
-              </motion.div>
-            ))}
-          </div>
+              </div>
+            </motion.article>
+          ))}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Action CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-20 text-center"
+          transition={{ duration: 0.45, delay: 0.3 }}
+          className="flex justify-center"
         >
-          <p className="text-white/60 mb-4">Ready to start your journey?</p>
-          <button
-            onClick={onGetStarted}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#a088ff] to-[#63e3ff] text-[#141414] font-medium hover:opacity-90 transition-opacity"
-          >
-            Get Started Now
-            <TrendingUp className="w-5 h-5" />
+          <button onClick={onGetStarted} className="btn-island py-4 px-8 text-base">
+            Build your custom roadmap
+            <span className="btn-island__icon">
+              <ArrowRight size={18} />
+            </span>
           </button>
         </motion.div>
       </div>
