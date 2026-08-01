@@ -12,7 +12,7 @@ import {
   LogOut,
   ChevronDown,
   Flame,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
@@ -39,12 +39,11 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 40);
 
-      // Scroll Spy Logic for Home Page
       if (currentView === 'home') {
-        const sections = ['home', 'roadmaps'];
-        const scrollPosition = window.scrollY + 100; // Offset for header
+        const sections = ['home', 'roadmaps', 'features', 'how-it-works', 'community'];
+        const scrollPosition = window.scrollY + 140;
 
         let current = 'home';
         for (const section of sections) {
@@ -62,13 +61,14 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentView]);
 
   const navLinks = [
     { id: 'home', label: 'Home', icon: Code2, view: 'home' as const, isAnchor: true },
     { id: 'roadmaps', label: 'Roadmaps', icon: Map, view: 'home' as const, isAnchor: true },
+    { id: 'features', label: 'System', icon: Code2, view: 'home' as const, isAnchor: true },
     { id: 'problems', label: 'Problems', icon: List, view: 'problems' as const, isAnchor: false },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, view: 'leaderboard' as const, isAnchor: false },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Shield, view: 'admin' as const, isAnchor: false }] : []),
@@ -78,7 +78,6 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
     if (link.isAnchor) {
       if (currentView !== 'home') {
         onNavigate('home');
-        // Wait for navigation render then scroll
         setTimeout(() => {
           const element = document.getElementById(link.id);
           element?.scrollIntoView({ behavior: 'smooth' });
@@ -103,76 +102,84 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
 
   return (
     <>
-      <motion.nav
+      <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-          ? 'py-3'
-          : 'py-5'
-          }`}
+        transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? 'py-3' : 'py-5'
+        }`}
       >
-        <div className={`mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-500 ${isScrolled ? 'max-w-4xl' : 'max-w-7xl'
-          }`}>
-          <div className={`flex items-center justify-between transition-all duration-500 ${isScrolled
-            ? 'glass rounded-full px-6 py-3'
-            : 'bg-transparent'
-            }`}>
+        <div
+          className={`mx-auto px-4 sm:px-6 transition-all duration-300 ${
+            isScrolled ? 'max-w-5xl' : 'max-w-7xl'
+          }`}
+        >
+          <div
+            className={`flex items-center justify-between transition-all duration-300 ${
+              isScrolled
+                ? 'rounded-full px-5 py-2.5 bg-black/80 border border-white/10 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
+                : 'bg-transparent px-2'
+            }`}
+          >
             {/* Logo */}
             <motion.button
               onClick={() => handleNavClick(navLinks[0])}
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-2.5 group"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a088ff]/20 to-[#63e3ff]/20 border border-white/10 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-[#a088ff]/5">
-                <Logo className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-[#0a0b0e] border border-white/15 group-hover:border-[#fa6a20]/60 flex items-center justify-center transition-colors shadow-lg">
+                <Logo className="w-5 h-5 text-[#fa6a20]" />
               </div>
-              <span className="font-display text-2xl text-white hidden sm:block">
-                AlgoForge
+              <span className="text-[1.12rem] font-bold tracking-tight text-white hidden sm:block">
+                Algo<span className="text-[#fa6a20]">Forge</span>
               </span>
             </motion.button>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link, index) => {
-                const isActive = currentView === 'home'
-                  ? (link.isAnchor ? activeSection === link.id : false)
-                  : currentView === link.view;
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => {
+                const isActive =
+                  currentView === 'home'
+                    ? link.isAnchor
+                      ? activeSection === link.id
+                      : false
+                    : currentView === link.view;
 
                 return (
-                  <motion.button
+                  <button
                     key={link.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
                     onClick={() => handleNavClick(link)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group ${isActive
-                      ? 'text-white'
-                      : 'text-white/60 hover:text-white'
-                      }`}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-200 relative ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-white/50 hover:text-white'
+                    }`}
                   >
-                    {isActive ? (
+                    {isActive && (
                       <motion.div
                         layoutId="nav-pill"
-                        className="absolute inset-0 bg-white/10 rounded-full"
-                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                        className="absolute inset-0 bg-white/10 border border-white/15 rounded-full shadow-[0_0_15px_rgba(250,106,32,0.15)]"
+                        transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }}
                       />
-                    ) : null}
-                    <span className="relative z-10">{link.label}</span>
-                  </motion.button>
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      {link.label}
+                    </span>
+                  </button>
                 );
               })}
-            </div>
+            </nav>
 
-            {/* Right Side */}
+            {/* Right Side Actions */}
             <div className="flex items-center gap-3">
               {user ? (
                 <>
                   {/* XP Badge */}
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass">
-                    <Flame className="w-4 h-4 text-[#ff8a63] animate-flame" />
-                    <span className="text-white font-medium">
+                  <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/10 shadow-inner">
+                    <Flame className="w-4 h-4 text-[#fa6a20] animate-pulse" />
+                    <span className="text-white font-mono text-xs font-bold">
                       {profile?.xp_points || 0} XP
                     </span>
                   </div>
@@ -180,38 +187,38 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
                   {/* User Menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-white/5 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#a088ff] to-[#63e3ff] flex items-center justify-center">
-                          <span className="text-sm font-medium text-[#141414]">
-                            {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                          </span>
+                      <button className="flex items-center gap-2 p-1 rounded-full hover:bg-white/10 transition-colors border border-white/10 bg-black/40">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#fa6a20] to-[#00f0ff] flex items-center justify-center text-black font-bold text-xs">
+                          {profile?.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                         </div>
-                        <ChevronDown className="w-4 h-4 text-white/60 hidden sm:block" />
+                        <ChevronDown className="w-3.5 h-3.5 text-white/60 hidden sm:block mr-1.5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 bg-[#202020] border-white/10">
-                      <div className="px-3 py-2">
-                        <p className="text-sm font-medium text-white">{profile?.name || 'User'}</p>
-                        <p className="text-xs text-white/60 truncate">{user.email}</p>
+                    <DropdownMenuContent align="end" className="w-56 bg-[#0a0b0e] border-white/10 text-white backdrop-blur-2xl">
+                      <div className="px-3 py-2.5">
+                        <p className="text-sm font-semibold text-white">{profile?.name || 'User'}</p>
+                        <p className="text-xs font-mono text-white/50 truncate">{user.email}</p>
                       </div>
                       <DropdownMenuSeparator className="bg-white/10" />
                       <DropdownMenuItem
                         onClick={() => onNavigate('dashboard')}
-                        className="text-white/80 hover:text-white hover:bg-white/5 cursor-pointer"
+                        className="text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
                       >
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        <LayoutDashboard className="w-4 h-4 mr-2 text-[#00f0ff]" />
                         Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onNavigate('notes')}
-                        className="text-white/80 hover:text-white hover:bg-white/5 cursor-pointer"
+                        className="text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
                       >
-                        <StickyNote className="w-4 h-4 mr-2" />
+                        <StickyNote className="w-4 h-4 mr-2 text-[#fa6a20]" />
                         My Notes
                       </DropdownMenuItem>
                       {user.role === 'admin' && (
                         <DropdownMenuItem
-                          onClick={() => { window.location.hash = 'admin'; }}
+                          onClick={() => {
+                            window.location.hash = 'admin';
+                          }}
                           className="text-[#a088ff] hover:text-[#b8a4ff] hover:bg-[#a088ff]/10 cursor-pointer"
                         >
                           <Shield className="w-4 h-4 mr-2" />
@@ -230,89 +237,89 @@ export function Navigation({ currentView, onNavigate, onAuthClick }: NavigationP
                   </DropdownMenu>
                 </>
               ) : (
-                <div className="hidden sm:flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-3">
                   <Button
                     variant="ghost"
                     onClick={() => onAuthClick('login')}
-                    className="text-white/80 hover:text-white hover:bg-white/5"
+                    className="text-white/70 hover:text-white hover:bg-white/5 font-semibold text-xs uppercase tracking-wider"
                   >
                     Log In
                   </Button>
-                  <Button
+                  <button
                     onClick={() => onAuthClick('signup')}
-                    className="bg-gradient-to-r from-[#a088ff] to-[#63e3ff] text-[#141414] hover:opacity-90"
+                    className="btn-island py-1.5 px-4 text-xs"
                   >
                     Get Started
-                  </Button>
+                  </button>
                 </div>
               )}
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
+                className="md:hidden p-2 rounded-xl border border-white/10 bg-black/60 text-white hover:bg-white/10 transition-colors"
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-white" />
-                ) : (
-                  <Menu className="w-6 h-6 text-white" />
-                )}
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </div>
-      </motion.nav>
+      </motion.header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Dropdown */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-20 z-40 mx-4 md:hidden"
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="fixed inset-x-4 top-20 z-40 md:hidden"
           >
-            <div className="glass rounded-2xl p-4 space-y-2">
-              {navLinks.map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() => {
-                    onNavigate(link.view);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${currentView === link.view
-                    ? 'bg-[#a088ff]/20 text-white'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+            <div className="doppelrand-shell p-1.5 shadow-2xl">
+              <div className="doppelrand-core p-4 space-y-1.5 bg-[#0a0b0e]">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.id}
+                    onClick={() => {
+                      handleNavClick(link);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                      currentView === link.view
+                        ? 'bg-white/10 text-white border border-white/15'
+                        : 'text-white/60 hover:bg-white/5 hover:text-white'
                     }`}
-                >
-                  <link.icon className="w-5 h-5" />
-                  {link.label}
-                </button>
-              ))}
+                  >
+                    <link.icon className="w-4 h-4 text-[#fa6a20]" />
+                    {link.label}
+                  </button>
+                ))}
 
-              {!user && (
-                <div className="pt-2 border-t border-white/10 space-y-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      onAuthClick('login');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full border-white/20 text-white hover:bg-white/5"
-                  >
-                    Log In
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      onAuthClick('signup');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-[#a088ff] to-[#63e3ff] text-[#141414]"
-                  >
-                    Get Started
-                  </Button>
-                </div>
-              )}
+                {!user && (
+                  <div className="pt-3 mt-2 border-t border-white/10 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        onAuthClick('login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full border-white/15 text-white bg-black/40 hover:bg-white/10 text-xs font-semibold"
+                    >
+                      Log In
+                    </Button>
+                    <button
+                      onClick={() => {
+                        onAuthClick('signup');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="btn-island w-full justify-center text-xs"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

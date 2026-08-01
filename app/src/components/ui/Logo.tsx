@@ -1,85 +1,15 @@
+import { motion, useReducedMotion } from 'framer-motion';
+import { useId } from 'react';
 
-import { motion } from 'framer-motion';
-
-export function Logo({ className = "", size = 40 }: { className?: string; size?: number }) {
-    return (
-        <motion.svg
-            width={size}
-            height={size}
-            viewBox="0 0 100 100"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className={className}
-        >
-            <defs>
-                <linearGradient id="primary-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#a088ff" />
-                    <stop offset="1" stopColor="#63e3ff" />
-                </linearGradient>
-                <linearGradient id="accent-grad" x1="100" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#ffffff" />
-                    <stop offset="1" stopColor="#a088ff" />
-                </linearGradient>
-                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-            </defs>
-
-            {/* Plate 1: Left */}
-            <motion.path
-                d="M30 20 L50 30 L50 70 L30 80 L10 70 V30 L30 20 Z"
-                fill="url(#primary-grad)"
-                fillOpacity="0.8"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-            />
-            {/* Detail Line Left */}
-            <path d="M30 20 L30 80" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-            <path d="M10 30 L30 40 L50 30" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-
-            {/* Plate 2: Right Top */}
-            <motion.path
-                d="M70 20 L90 30 V50 L70 60 L50 50 V30 L70 20 Z"
-                fill="url(#primary-grad)"
-                fillOpacity="0.6"
-                initial={{ opacity: 0, x: 10, y: -10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-            />
-            {/* Detail Line Top Right */}
-            <path d="M50 30 L70 40 L90 30" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-
-            {/* Plate 3: Right Bottom */}
-            <motion.path
-                d="M70 60 L90 70 V90 L70 80 L50 90 V70 L70 60 Z"
-                fill="url(#primary-grad)"
-                fillOpacity="0.9"
-                initial={{ opacity: 0, x: 10, y: 10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-            />
-            {/* Detail Line Bottom Right */}
-            <path d="M50 70 L70 80 L90 70" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-
-            {/* Central Core / Fusion Point */}
-            <motion.circle
-                cx="50"
-                cy="50"
-                r="8"
-                fill="white"
-                filter="url(#glow)"
-                initial={{ scale: 0 }}
-                animate={{ scale: [0.8, 1.2, 0.8] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-
-            {/* Connecting Data Streams */}
-            <path d="M30 40 L50 50" stroke="url(#accent-grad)" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-            <path d="M70 40 L50 50" stroke="url(#accent-grad)" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-            <path d="M70 80 L50 50" stroke="url(#accent-grad)" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-
-        </motion.svg>
-    );
+export function Logo({ className = '', size = 40 }: { className?: string; size?: number }) {
+  const reduceMotion = useReducedMotion();
+  const gradientId = useId();
+  return (
+    <motion.svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-label="AlgoForge">
+      <defs><linearGradient id={gradientId} x1="8" y1="8" x2="57" y2="55" gradientUnits="userSpaceOnUse"><stop stopColor="#ffcb97" /><stop offset="1" stopColor="#f05c18" /></linearGradient></defs>
+      <motion.path d="M8 49 27.5 10h9L56 49H44.5l-4-9H23.2l-4 9H8Zm19-18h9.7L32 20.1 27 31Z" fill={`url(#${gradientId})`} initial={reduceMotion ? false : { opacity: 0, pathLength: .7 }} animate={{ opacity: 1, pathLength: 1 }} transition={{ duration: .55, ease: [0.23, 1, 0.32, 1] }} />
+      <motion.path d="M26 31h19.5" stroke="#0d0c0b" strokeWidth="5" strokeLinecap="square" initial={reduceMotion ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: .32, delay: .28, ease: [0.23, 1, 0.32, 1] }} />
+      <path d="M47.5 17H57v9.5h-9.5z" fill="#f4eee6" />
+    </motion.svg>
+  );
 }
