@@ -3,24 +3,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.server = exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
+const helmet_1 = __importDefault(require("helmet"));
 const db_1 = __importDefault(require("./config/db"));
 dotenv_1.default.config();
-// server.ts — add before app.listen()
-if (!process.env.JWT_SECRET) {
-    throw new Error('FATAL: JWT_SECRET environment variable is not set.');
-}
+const env_1 = require("./config/env");
 const app = (0, express_1.default)();
-const port = process.env.PORT || 5000;
+exports.app = app;
+const port = env_1.config.PORT || 5000;
 // Middleware
 const allowedOrigins = [
     'https://algo-forge-2-0.vercel.app',
     'https://algoforge-2-0.onrender.com',
     'http://localhost:5173',
+    'http://localhost:4173',
     'http://localhost:3000',
-    process.env.CLIENT_URL,
+    env_1.config.CLIENT_URL,
 ].filter(Boolean);
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
@@ -36,6 +37,39 @@ app.use((0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+// Remove Express fingerprint header
+app.disable('x-powered-by');
+// Security headers config
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+            defaultSrc: ["'none'"],
+            scriptSrc: ["'none'"],
+            connectSrc: ["'self'"],
+            imgSrc: ["'self'"],
+            styleSrc: ["'none'"],
+            frameAncestors: ["'none'"],
+            formAction: ["'none'"],
+        }
+    },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    noSniff: true,
+    frameguard: { action: 'deny' },
+    hsts: process.env.NODE_ENV === 'production' ? {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    } : false,
+    xssFilter: true,
+}));
+// Permissions-Policy header configuration
+app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()');
+    next();
+});
 app.use(express_1.default.json());
 // Database Connection
 (0, db_1.default)();
@@ -62,6 +96,9 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is healthy' });
 });
-app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+let server;
+if (process.env.NODE_ENV !== 'test') {
+    exports.server = server = app.listen(port, () => {
+        console.log(`[server]: Server is running at http://localhost:${port}`);
+    });
+}

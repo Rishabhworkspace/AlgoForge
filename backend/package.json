@@ -8,6 +8,9 @@
         "dev": "nodemon src/server.ts",
         "build": "prisma generate && tsc",
         "seed": "ts-node src/scripts/seed.ts",
+        "sync:terminal-catalog": "ts-node src/scripts/syncTerminalCatalog.ts",
+        "verify:terminal-catalog": "ts-node src/scripts/verifyTerminalCatalog.ts",
+        "verify:terminal-coverage": "ts-node src/scripts/verifyTerminalCatalog.ts --coverage",
         "test": "vitest run",
         "test:coverage": "vitest run --coverage"
     },

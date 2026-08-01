@@ -8,10 +8,11 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const db_1 = require("../config/db");
 const google_auth_library_1 = require("google-auth-library");
-const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const env_1 = require("../config/env");
+const client = new google_auth_library_1.OAuth2Client(env_1.config.GOOGLE_CLIENT_ID);
 // Generate JWT
 const generateToken = (id) => {
-    return jsonwebtoken_1.default.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    return jsonwebtoken_1.default.sign({ id }, env_1.config.JWT_SECRET, { expiresIn: '30d' });
 };
 // @desc    Register new user
 // @route   POST /api/users
@@ -92,7 +93,7 @@ const googleAuth = async (req, res) => {
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: env_1.config.GOOGLE_CLIENT_ID
         });
         const payload = ticket.getPayload();
         if (!payload || !payload.email) {

@@ -6,13 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminOnly = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("../config/db");
+const env_1 = require("../config/env");
 const protect = async (req, res, next) => {
     let token;
     if (req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+            const decoded = jsonwebtoken_1.default.verify(token, env_1.config.JWT_SECRET);
             const user = await db_1.prisma.user.findUnique({
                 where: { id: decoded.id },
             });
