@@ -1,151 +1,70 @@
-
-import { useMemo } from 'react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useStats } from '@/hooks/useStats';
 
-interface CTAProps {
-  onGetStarted: () => void;
-}
-
-export function CTA({ onGetStarted }: CTAProps) {
+export function CTA({ onGetStarted }: { onGetStarted: () => void }) {
   const { userCount } = useStats();
 
-  // Pre-compute random values to avoid Math.random() in render
-  const warpLines = useMemo(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      key: i,
-      duration: 2 + (((i * 7 + 3) % 10) / 5),
-      delay: ((i * 13 + 7) % 20) / 10,
-      top: ((i * 17 + 11) % 100),
-      width: 100 + ((i * 23 + 5) % 200),
-    })),
-    []
-  );
-
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 isometric-pattern opacity-30" />
+    <section id="cta" className="relative py-28 overflow-hidden bg-[#050505]">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-[#fa6a20]/15 via-[#00f0ff]/10 to-transparent rounded-full blur-[160px] pointer-events-none" />
 
-      {/* Animated Gradient */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3]
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute inset-0 bg-gradient-to-r from-[#a088ff]/20 via-[#63e3ff]/20 to-[#ff8a63]/20"
-      />
-
-      {/* Warp Speed Lines */}
-      <div className="absolute inset-0 overflow-hidden">
-        {warpLines.map((line) => (
-          <motion.div
-            key={line.key}
-            initial={{ x: '-100%', opacity: 0 }}
-            animate={{
-              x: '200%',
-              opacity: [0, 0.5, 0]
-            }}
-            transition={{
-              duration: line.duration,
-              repeat: Infinity,
-              delay: line.delay,
-              ease: 'linear'
-            }}
-            className="absolute h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            style={{
-              top: `${line.top}%`,
-              width: `${line.width}px`
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Badge */}
+      <div className="forge-shell relative z-10 max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 26 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8"
+          viewport={{ once: true, margin: '-15%' }}
+          transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+          className="doppelrand-shell p-2 shadow-[0_20px_80px_rgba(250,106,32,0.15)]"
         >
-          <Sparkles className="w-4 h-4 text-[#a088ff]" />
-          <span className="text-sm text-white/80">Join {userCount} learners today</span>
-        </motion.div>
+          <div className="doppelrand-core p-12 sm:p-16 text-center relative overflow-hidden bg-[#0a0b0e]">
+            {/* Subtle Grid overlay inside card */}
+            <div className="absolute inset-0 grid-pattern opacity-15 pointer-events-none" />
 
-        {/* Heading */}
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="font-display text-4xl sm:text-5xl md:text-6xl text-white mb-6"
-        >
-          Ready to Start Your{' '}
-          <span className="gradient-text">Journey?</span>
-        </motion.h2>
+            <div className="relative z-10 max-w-2xl mx-auto">
+              <div className="eyebrow-pill mx-auto mb-6">
+                <Sparkles size={13} className="text-[#fa6a20]" />
+                <span>ATELIER ACCESS // INITIALIZE PRACTICE</span>
+              </div>
 
-        {/* Description */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto mb-10"
-        >
-          Start learning for free. No credit card required.
-          Get access to 500+ problems, video solutions, and structured roadmaps.
-        </motion.p>
+              <h2 className="font-sans text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
+                Stop collecting links. <br />
+                <span className="text-[#ffae62]">Start building recall.</span>
+              </h2>
 
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Button
-            size="lg"
-            onClick={onGetStarted}
-            className="btn-shine bg-gradient-to-r from-[#a088ff] to-[#63e3ff] text-[#141414] hover:opacity-90 px-8 py-6 text-lg font-medium rounded-xl group"
-          >
-            <Zap className="mr-2 w-5 h-5" />
-            Start Learning Now
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </motion.div>
+              <p className="text-lg text-white/60 leading-relaxed mb-10">
+                Join {userCount.toLocaleString()} ambitious developers turning scattered study sessions into instinctive, high-signal technical mastery.
+              </p>
 
-        {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-white/40"
-        >
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Free Forever
-          </span>
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            No Credit Card
-          </span>
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Cancel Anytime
-          </span>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+                <button onClick={onGetStarted} className="btn-island py-4 px-9 text-base w-full sm:w-auto">
+                  Start learning free
+                  <span className="btn-island__icon">
+                    <ArrowRight size={18} />
+                  </span>
+                </button>
+                <a
+                  href="#roadmaps"
+                  className="forge-button--quiet py-4 px-6 text-sm w-full sm:w-auto text-center justify-center border border-white/10 rounded-full"
+                >
+                  Inspect curriculum
+                </a>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono text-white/50">
+                <span className="flex items-center gap-1.5">
+                  <Check size={14} className="text-[#00f0ff]" /> No credit card required
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check size={14} className="text-[#00f0ff]" /> Instant access to roadmaps
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check size={14} className="text-[#00f0ff]" /> Interactive 3D breakdowns
+                </span>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
