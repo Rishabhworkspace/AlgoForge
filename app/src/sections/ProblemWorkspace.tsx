@@ -113,7 +113,8 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
       setExecutionResult(result);
       return result;
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      const errRes = { error: `Execution failed: ${error.message || 'Server error'}` };
+      const message = error.response?.data?.message || error.message || 'Server error';
+      const errRes = { error: `Execution failed: ${message}` };
       setExecutionResult(errRes);
       toast.error('Failed to execute code');
       return errRes;
@@ -156,6 +157,8 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
     );
   }
 
+  const isExecutable = problem.testCases?.length >= 3;
+
   return (
     <div className="flex flex-col h-screen bg-[#141414] pt-[72px]">
       {/* Top Navbar for Workspace */}
@@ -178,8 +181,8 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={handleRunCode}
-            disabled={isExecuting}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/10 text-sm transition-colors ${isExecuting ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 text-white/80 hover:text-white'
+            disabled={isExecuting || !isExecutable}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/10 text-sm transition-colors ${isExecuting || !isExecutable ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 text-white/80 hover:text-white'
               }`}
           >
             {isExecuting ? (
@@ -191,7 +194,8 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
           </button>
           <button
             onClick={handleSubmit}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-[#a088ff] hover:bg-[#b09dff] text-white transition-colors text-sm font-medium shadow-lg shadow-[#a088ff]/20"
+            disabled={!isExecutable}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${isExecutable ? 'bg-[#a088ff] hover:bg-[#b09dff] text-white shadow-lg shadow-[#a088ff]/20' : 'bg-white/10 text-white/40 cursor-not-allowed'}`}
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Submit</span>
@@ -221,6 +225,22 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
               <div className="text-white/80 leading-relaxed space-y-4 whitespace-pre-wrap">
                 {problem.description}
               </div>
+              {problem.testCases?.length > 0 && (
+                <div className="mt-8 space-y-4">
+                  <h2 className="text-lg font-semibold text-white">Examples</h2>
+                  {problem.testCases.map((testCase: { input: string; expectedOutput: string }, index: number) => (
+                    <div key={index} className="rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
+                      <div><span className="text-white/40">Input:</span> {testCase.input}</div>
+                      <div className="mt-2"><span className="text-white/40">Output:</span> {testCase.expectedOutput}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {problem.testCases?.length === 0 && (
+                <p className="mt-8 rounded-lg border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+                  This is a read-only design or API prompt. It intentionally has no executable stdin/stdout test suite.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -264,6 +284,7 @@ export function ProblemWorkspace({ problemId, onBack }: ProblemWorkspaceProps) {
               value={code}
               onChange={handleEditorChange}
               options={{
+                readOnly: !isExecutable,
                 fontSize: 14,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,

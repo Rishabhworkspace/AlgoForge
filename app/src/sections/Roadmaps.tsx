@@ -8,7 +8,7 @@ import {
   Briefcase,
   Server,
   ArrowRight,
-  PlayCircle
+  PlayCircle,
 } from 'lucide-react';
 import { getLearningPaths, getTopicsByPath, getProblemsByTopic } from '@/api/content';
 import { getUserProgress } from '@/api/userActions';
@@ -19,13 +19,13 @@ interface RoadmapsProps {
   onPathClick: (pathId: string) => void;
 }
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, React.ElementType<{ className?: string; style?: React.CSSProperties }>> = {
   Binary,
   Cpu,
   GitBranch,
   Network,
   Briefcase,
-  Server
+  Server,
 };
 
 export function Roadmaps({ onPathClick }: RoadmapsProps) {
@@ -48,29 +48,32 @@ export function Roadmaps({ onPathClick }: RoadmapsProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const topicsData: Record<string, any[]> = {};
-        // Also collect all problem _ids per path for progress matching
         const pathProblemIds: Record<string, string[]> = {};
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await Promise.all(paths.map(async (path: any) => {
-          const pathTopics = await getTopicsByPath(path.id);
-          topicsData[path.id] = pathTopics;
+        await Promise.all(
+          paths.map(async (path: any) => {
+            const pathTopics = await getTopicsByPath(path.id);
+            topicsData[path.id] = pathTopics;
 
-          // Fetch problems for each topic to get their _ids
-          const problemIds: string[] = [];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await Promise.all(pathTopics.map(async (topic: any) => {
-            try {
-              const problems = await getProblemsByTopic(topic.id);
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              problems.forEach((p: any) => problemIds.push(p.id));
-            } catch { /* ignore */ }
-          }));
-          pathProblemIds[path.id] = problemIds;
-        }));
+            const problemIds: string[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await Promise.all(
+              pathTopics.map(async (topic: any) => {
+                try {
+                  const problems = await getProblemsByTopic(topic.id);
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  problems.forEach((p: any) => problemIds.push(p.id));
+                } catch {
+                  /* ignore */
+                }
+              })
+            );
+            pathProblemIds[path.id] = problemIds;
+          })
+        );
         setTopicsMap(topicsData);
 
-        // Fetch user progress and compute solved counts per path
         if (user) {
           try {
             const progressData = await getUserProgress();
@@ -84,13 +87,15 @@ export function Roadmaps({ onPathClick }: RoadmapsProps) {
 
             const counts: Record<string, number> = {};
             for (const [pathId, pIds] of Object.entries(pathProblemIds)) {
-              counts[pathId] = pIds.filter(id => solvedSet.has(id)).length;
+              counts[pathId] = pIds.filter((id) => solvedSet.has(id)).length;
             }
             setPathSolvedCounts(counts);
-          } catch { /* user not logged in or error */ }
+          } catch {
+            /* ignore */
+          }
         }
       } catch (e) {
-        console.error("Failed to load roadmaps", e);
+        console.error('Failed to load roadmaps', e);
       } finally {
         setLoading(false);
       }
@@ -102,48 +107,50 @@ export function Roadmaps({ onPathClick }: RoadmapsProps) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+      transition: { staggerChildren: 0.08 },
+    },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 24 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] as const
-      }
-    }
+      transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as const },
+    },
   };
 
   if (loading) {
-    return <div className="py-24 text-center text-white/60">Loading roadmaps...</div>;
+    return (
+      <div className="py-32 text-center text-white/60 font-mono text-sm animate-pulse">
+        INITIALIZING LEARNING ROADMAPS // LOADING MODULES...
+      </div>
+    );
   }
 
   return (
-    <section id="roadmaps" className="relative py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 grid-pattern opacity-20" />
+    <section id="roadmaps" className="relative py-28 overflow-hidden bg-[#050505]">
+      {/* Background Lighting */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#00f0ff]/05 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: '-15%' }}
+          transition={{ duration: 0.55 }}
+          className="text-center max-w-3xl mx-auto mb-20"
         >
-          <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
-            Learning <span className="gradient-text">Roadmaps</span>
+          <div className="eyebrow-pill mx-auto mb-5">
+            <span /> LEARNING PATHS // CURATED CURRICULUM
+          </div>
+          <h2 className="font-sans text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
+            Master the core. <br />
+            <span className="text-[#00f0ff]">Pathways built for clarity.</span>
           </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Choose your path and start your journey. Each roadmap is carefully curated
-            to take you from beginner to expert.
+          <p className="text-lg text-white/60 leading-relaxed">
+            Structured tracks that take you systematically from fundamental intuition to technical mastery without the overwhelming fluff.
           </p>
         </motion.div>
 
@@ -152,7 +159,7 @@ export function Roadmaps({ onPathClick }: RoadmapsProps) {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-10%' }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {categories.map((category) => {
@@ -168,137 +175,108 @@ export function Roadmaps({ onPathClick }: RoadmapsProps) {
                 variants={itemVariants}
                 onMouseEnter={() => setHoveredCategory(category.id)}
                 onMouseLeave={() => setHoveredCategory(null)}
-                className="group relative"
+                className={`doppelrand-shell p-1.5 group cursor-pointer transition-all duration-300 ${
+                  hoveredCategory === category.id ? 'border-white/30 shadow-[0_10px_40px_rgba(0,240,255,0.12)] -translate-y-1' : ''
+                }`}
+                onClick={() => onPathClick(category.id)}
               >
-                <div
-                  className="relative h-full glass rounded-2xl p-6 overflow-hidden card-hover cursor-pointer"
-                  style={{
-                    transform: hoveredCategory === category.id
-                      ? 'translateY(-4px) scale(1.02)'
-                      : 'translateY(0) scale(1)',
-                    transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }}
-                  onClick={() => onPathClick(category.id)}
-                >
-                  {/* Gradient Border Effect */}
+                <div className="doppelrand-core p-7 h-full flex flex-col justify-between bg-[#0a0b0e] hover:bg-white/[0.03] transition-all duration-300 relative overflow-hidden">
+                  {/* Subtle Gradient Glow inside card */}
                   <div
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{
-                      background: `linear-gradient(135deg, ${category.color}40, transparent)`,
-                      padding: '1px'
-                    }}
+                    className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[60px] opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: category.color }}
                   />
 
-                  {/* Content */}
-                  <div className="relative z-10">
-                    {/* Icon & Title */}
-                    <div className="flex items-start justify-between mb-4">
+                  <div>
+                    {/* Icon & Topic Count */}
+                    <div className="flex items-start justify-between mb-6">
                       <div
-                        className="w-14 h-14 rounded-xl flex items-center justify-center"
-                        style={{ background: `${category.color}20` }}
+                        className="w-13 h-13 rounded-2xl flex items-center justify-center p-3.5 bg-white/5 border border-white/10 group-hover:scale-110 transition-transform shadow-lg"
+                        style={{ color: category.color }}
                       >
-                        <Icon
-                          className="w-7 h-7"
-                          style={{ color: category.color }}
-                        />
+                        <Icon className="w-6 h-6" style={{ color: category.color }} />
                       </div>
-                      <div className="flex items-center gap-1 text-white/40">
-                        <span className="text-sm">{topics.length} topics</span>
-                      </div>
+                      <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 text-white/50 border border-white/10">
+                        {topics.length} TOPICS
+                      </span>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-[#a088ff] transition-colors">
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#00f0ff] transition-colors">
                       {category.title}
                     </h3>
-                    <p className="text-white/60 text-sm mb-4 line-clamp-2">
+                    <p className="text-sm text-white/60 leading-relaxed mb-6 line-clamp-2">
                       {category.description}
                     </p>
 
-                    {/* Progress */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-white/60">Progress</span>
-                        <span className="text-white/80">{solvedCount}/{totalProblems}</span>
+                    {/* Progress Bar */}
+                    <div className="mb-6 bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
+                      <div className="flex items-center justify-between text-xs font-mono mb-2">
+                        <span className="text-white/50">PROGRESS</span>
+                        <span className="font-bold text-white">
+                          {solvedCount}/{totalProblems} <span className="text-white/30">({progressPercent}%)</span>
+                        </span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: `${progressPercent}%` }}
                           viewport={{ once: true }}
-                          transition={{ duration: 1, delay: 0.5 }}
+                          transition={{ duration: 1, delay: 0.3 }}
                           className="h-full rounded-full"
-                          style={{ background: category.color }}
+                          style={{ background: category.color || '#fa6a20' }}
                         />
                       </div>
                     </div>
 
-                    {/* Topics Preview */}
-                    <div className="space-y-2">
+                    {/* Topics Preview List */}
+                    <div className="space-y-2 mb-6">
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {topics.slice(0, 3).map((topic: any) => (
-                        <div
-                          key={topic.id}
-                          className="flex items-center gap-2 text-sm text-white/60"
-                        >
-                          <PlayCircle className="w-4 h-4" style={{ color: category.color }} />
+                        <div key={topic.id} className="flex items-center gap-2.5 text-xs text-white/70">
+                          <PlayCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: category.color }} />
                           <span className="truncate">{topic.title}</span>
                         </div>
                       ))}
                       {topics.length > 3 && (
-                        <div className="text-sm text-white/40 pl-6">
-                          +{topics.length - 3} more topics
+                        <div className="text-xs font-mono text-white/40 pl-6">
+                          +{topics.length - 3} more subtopics
                         </div>
                       )}
                     </div>
-
-                    {/* CTA */}
-                    <div className="mt-6 pt-4 border-t border-white/10">
-                      <button
-                        className="flex items-center gap-2 text-sm font-medium group/btn"
-                        style={{ color: category.color }}
-                      >
-                        Start Learning
-                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                      </button>
-                    </div>
                   </div>
 
-                  {/* Hover Glow */}
-                  <div
-                    className="absolute -bottom-20 -right-20 w-40 h-40 rounded-full blur-[60px] opacity-0 group-hover:opacity-50 transition-opacity duration-500"
-                    style={{ background: category.color }}
-                  />
+                  {/* Footer Button */}
+                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-sm font-semibold text-white group-hover:text-[#00f0ff] transition-colors">
+                    <span>Start Track</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </motion.div>
 
-        {/* Stats Row */}
+        {/* Bottom Telemetry Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.55, delay: 0.2 }}
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { label: 'Total Problems', value: problemCount, color: '#a088ff' },
-            { label: 'Video Solutions', value: videoCount, color: '#63e3ff' },
-            { label: 'Learning Paths', value: roadmapCount, color: '#ff8a63' },
-            { label: 'Active Learners', value: userCount, color: '#88ff9f' }
+            { label: 'Total Problems', value: problemCount, color: '#fa6a20' },
+            { label: 'Video Solutions', value: videoCount, color: '#00f0ff' },
+            { label: 'Learning Paths', value: roadmapCount, color: '#a088ff' },
+            { label: 'Active Learners', value: userCount, color: '#ffae62' },
           ].map((stat) => (
-            <div
-              key={stat.label}
-              className="glass rounded-xl p-4 text-center"
-            >
-              <p
-                className="text-2xl sm:text-3xl font-bold mb-1"
-                style={{ color: stat.color }}
-              >
-                {stat.value}
-              </p>
-              <p className="text-sm text-white/60">{stat.label}</p>
+            <div key={stat.label} className="doppelrand-shell p-1.5">
+              <div className="doppelrand-core p-6 text-center bg-[#0a0b0e]">
+                <p className="text-2xl sm:text-4xl font-bold font-mono mb-1" style={{ color: stat.color }}>
+                  {stat.value}
+                </p>
+                <p className="text-xs uppercase tracking-wider font-mono text-white/50">{stat.label}</p>
+              </div>
             </div>
           ))}
         </motion.div>

@@ -22,7 +22,7 @@ interface PathDetailProps {
     onTopicClick: (topicId: string) => void;
 }
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, React.ElementType<{ className?: string; style?: React.CSSProperties }>> = {
     Binary, Cpu, GitBranch, Network, Briefcase, Server
 };
 
