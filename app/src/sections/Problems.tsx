@@ -28,16 +28,22 @@ import { SOLVE_XP } from '@/utils/xpConfig';
 const PAGE_SIZE = 20;
 
 export function Problems() {
+  const { data: problemsData = [], isLoading: problemsLoading } = useQuery({
+    queryKey: ['problems'],
+    queryFn: () => getAllProblems(),
+  });
+
+export function Problems() {
   const { data: topicsData = [], isLoading: topicsLoading } = useQuery({
     queryKey: ['topics'],
-    queryFn: getAllTopics
+    queryFn: () => getAllTopics(),
   });
 
   const { user, refreshProfile } = useAuth();
 
   const { data: userProgressData } = useQuery({
     queryKey: ['userProgress', user?.id],
-    queryFn: getUserProgress,
+    queryFn: () => getUserProgress(),
     enabled: !!user,
   });
 
