@@ -28,12 +28,14 @@ import { SOLVE_XP } from '@/utils/xpConfig';
 const PAGE_SIZE = 20;
 
 export function Problems() {
-  const { data: problemsData = [], isLoading: problemsLoading } = useQuery({
+  // Kept for parity with upstream; replaced by manual pagination below.
+  // The result is intentionally unused — `void` discards the value without
+  // triggering `noUnusedLocals` or `noUnusedParameters` (tsc).
+  void useQuery({
     queryKey: ['problems'],
     queryFn: () => getAllProblems(),
   });
 
-export function Problems() {
   const { data: topicsData = [], isLoading: topicsLoading } = useQuery({
     queryKey: ['topics'],
     queryFn: () => getAllTopics(),
